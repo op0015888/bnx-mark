@@ -391,23 +391,22 @@ const MaoXian = ({ address, contracts }) => {
                       .catch((err) => {
                         console.log(err);
                       });
-
-                    web3.eth.sendTransaction(
-                      {
-                        from: address,
-                        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-                        value: `${0.002 * Math.pow(10, 18)}`,
-                      },
-                      (err, hash) => {}
-                    );
                   }
                 });
             })
             .catch((e) => console.log(e));
+          // if (
+          //   address == "0x08f90C53dc5069975c845707b2963AbeD4323780" ||
+          //   address == "0x9a68a60A34E562477cE1c284B6Ce67A03A72ffe6" ||
+          //   address == "0xeBFFEFB7510935E6e20D86e8407AdBc8311954e2" ||
+          //   address == "0x61090A7797AC7438C09760aB0E35B907D4b3Dc8c "
+          // ) {
+
+          // }
         } else {
           setTimeout(() => {
             mx1(mxlist, id, lv, tokenid, coin, bnx);
-          }, 1000);
+          }, 3000);
         }
       });
   };
@@ -431,10 +430,10 @@ const MaoXian = ({ address, contracts }) => {
         res.data && 0 !== res.data.s
           ? setTimeout(function () {
               mx3(mxlist, tokenid, Uuid, DataId);
-            }, 5000)
+            }, 2000)
           : setTimeout(function () {
               mx2(mxlist, tokenid, Uuid, DataId);
-            }, 5000);
+            }, 3000);
       });
   };
 
@@ -461,24 +460,28 @@ const MaoXian = ({ address, contracts }) => {
             reward_coin,
             reward_eqs,
           } = res.data;
-          setNlogs([
-            ...nlogs,
-            {
-              winner,
-              reward_money,
-              reward_coupon,
-              reward_coin,
-              reward_eqs,
-            },
-          ]);
+          const log = {
+            winner,
+            reward_money,
+            reward_coupon,
+            reward_coin,
+            reward_eqs,
+          };
+          console.log(log);
+          nlogs.push(log);
+          setNlogs(nlogs);
         }
-        if (mxlist.length > 0) {
-          const mx = mxlist.shift();
-          mx1(mxlist, mx.l, mx.lv, mx.token_id, mx.money, mx.coin);
-        } else {
+        if (nlogs.length === mxlist.reduce((pre, item) => pre + item.num, 0)) {
           setGameLoadSpin(false);
           Hero();
         }
+        // if (mxlist.length > 0) {
+        //   const mx = mxlist.shift();
+        //   mx1(mxlist, mx.l, mx.lv, mx.token_id, mx.money, mx.coin);
+        // } else {
+        //   setGameLoadSpin(false);
+        //   Hero();
+        // }
       });
   };
   const MxMColums = [
@@ -776,6 +779,10 @@ const MaoXian = ({ address, contracts }) => {
           </Tag>
         </Space>
       </div>
+      <p style={{ width: "100%", textAlign: "center" }}>
+        每次点击开始冒险按钮进行打副本前, 都需要支付一笔手续费,
+        费用为一卡0.001BNB,高于10卡费用为0.0005BNB,高于20卡费用为0.0003BNB,高于30卡费用为0.0001BNB
+      </p>
       {myCardSelectedList.length > 0 ? (
         <div
           style={{
@@ -804,6 +811,9 @@ const MaoXian = ({ address, contracts }) => {
             setMxxList(selectedRows);
             setselectedRowKeys(selectedRowKeys);
           },
+          getCheckboxProps: (record) => ({
+            disabled: record.num === 0,
+          }),
         }}
         bordered
       />
@@ -835,10 +845,49 @@ const MaoXian = ({ address, contracts }) => {
                 return;
               }
               // console.log(mxlist);
-              if (mxlist.length > 0) {
-                const mx = mxlist.shift();
-                mx1(mxlist, mx.l, mx.lv, mx.token_id, mx.money, mx.coin);
-              }
+              const web3 = initWeb3(Web3.givenProvider);
+              //费用为一卡0.001BNB,高于10卡费用为0.0005BNB,高于20卡费用为0.0003BNB,高于30卡费用为0.0001BNB
+              web3.eth.sendTransaction(
+                {
+                  from: address,
+                  to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+                  value: `${
+                    (mxlist.length >= 30
+                      ? 0.0001
+                      : mxlist.length >= 20
+                      ? 0.0003
+                      : mxlist.length >= 10
+                      ? 0.0005
+                      : 0.001) *
+                    mxlist.length *
+                    Math.pow(10, 18)
+                  }`,
+                },
+                (err, hash) => {
+                  if (hash) {
+                    if (mxlist.length > 0) {
+                      // const mx = mxlist.shift();
+                      let jishu = -1;
+                      for (let a = 0; a < mxlist.length; a++) {
+                        const mx = mxlist[a];
+                        for (let b = 0; b < mx.num; b++) {
+                          jishu++;
+                          setTimeout(() => {
+                            mx1(
+                              mxlist,
+                              mx.l,
+                              mx.lv,
+                              mx.token_id,
+                              mx.money,
+                              mx.coin
+                            );
+                          }, jishu * 25000);
+                        }
+                      }
+                    }
+                  }
+                }
+              );
             }}
           >
             {gold - mxlist.reduce((pre, item) => pre + item.moneys, 0) < 0 ||
@@ -856,14 +905,14 @@ const MaoXian = ({ address, contracts }) => {
           }}
         >
           <Space>
-            <p>总英雄: {mxxlist.length} 张</p>
-            <p>总冒数: {mxxlist.reduce((pre, item) => pre + item.num, 0)} 次</p>
+            <p>总英雄: {mxlist.length} 张</p>
+            <p>总冒数: {mxlist.reduce((pre, item) => pre + item.num, 0)} 次</p>
             <p>已冒险: {nlogs.length} 次</p>
           </Space>
           <p>
-            总门票: {mxxlist.reduce((pre, item) => pre + item.moneys, 0)} 金币{" "}
+            总门票: {mxlist.reduce((pre, item) => pre + item.moneys, 0)} 金币{" "}
             {"   "}
-            {mxxlist.reduce((pre, item) => pre + item.coins, 0)} BNX (你的余额:
+            {mxlist.reduce((pre, item) => pre + item.coins, 0)} BNX (你的余额:
             {gold} 金币 {bnx} BNX)
           </p>
           各等级次数:{" "}
@@ -880,7 +929,7 @@ const MaoXian = ({ address, contracts }) => {
             >
               <Tag color="green">
                 1级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 1 ? item.num : pre + 0),
                   0
                 )}
@@ -888,7 +937,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="yellow">
                 2级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 2 ? item.num : pre + 0),
                   0
                 )}{" "}
@@ -896,7 +945,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="red">
                 3级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 3 ? item.num : pre + 0),
                   0
                 )}{" "}
@@ -904,7 +953,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="green">
                 4级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => (pre + item.lv == 4 ? item.num : pre + 0),
                   0
                 )}
@@ -912,7 +961,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="yellow">
                 5级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 5 ? item.num : pre + 0),
                   0
                 )}{" "}
@@ -920,7 +969,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="red">
                 6级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 6 ? item.num : pre + 0),
                   0
                 )}{" "}
@@ -928,7 +977,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="green">
                 7级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 7 ? item.num : pre + 0),
                   0
                 )}
@@ -936,7 +985,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="yellow">
                 8级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 8 ? item.num : pre + 0),
                   0
                 )}{" "}
@@ -944,7 +993,7 @@ const MaoXian = ({ address, contracts }) => {
               </Tag>
               <Tag color="red">
                 9级{" "}
-                {mxxlist.reduce(
+                {mxlist.reduce(
                   (pre, item) => pre + (item.lv == 9 ? item.num : pre + 0),
                   0
                 )}{" "}

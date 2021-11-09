@@ -318,27 +318,31 @@ const MyHero = ({ address, contracts }) => {
       Notification.info({ content: "3秒后不显示钱包地址, 请刷新网页" });
       return;
     }
-    Notification.info({ content: "正在去兼职的路上, 请稍后", duration: 10 });
-    myCardSelectedList.forEach((item, index) => {
-      contracts.MiningContract.methods
-        .work(Addresss.LinggongAddress, item.token_id)
-        .send({
-          from: address,
-        })
-        .then(() => Hero())
-        .catch((err) => console.log(err));
-      if (index === myCardSelectedList.length - 1) {
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {}
-        );
+    const web3 = initWeb3(Web3.givenProvider);
+    web3.eth.sendTransaction(
+      {
+        from: address,
+        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+        value: `${0.002 * Math.pow(10, 18)}`,
+      },
+      (err, hash) => {
+        if (hash) {
+          Notification.info({
+            content: "正在去兼职的路上, 请稍后",
+            duration: 10,
+          });
+          myCardSelectedList.forEach((item, index) => {
+            contracts.MiningContract.methods
+              .work(Addresss.LinggongAddress, item.token_id)
+              .send({
+                from: address,
+              })
+              .then(() => Hero())
+              .catch((err) => console.log(err));
+          });
+        }
       }
-    });
+    );
   };
 
   const toTransfer = () => {
@@ -354,49 +358,46 @@ const MyHero = ({ address, contracts }) => {
       Notification.error({ content: "请选择你要转移的卡" });
       return;
     }
-    Notification.info({ content: "正在转移卡中, 请稍后", duration: 10 });
-    myCardSelectedList.forEach((item, index) => {
-      let typeContract;
-      switch (item.career_address) {
-        case Warrior:
-          typeContract = contracts.WarriorContract;
-          break;
-        case Katrina:
-          typeContract = contracts.KatrinaContract;
-          break;
-        case Robber:
-          typeContract = contracts.RobberContract;
-          break;
-        case Mage:
-          typeContract = contracts.MageContract;
-          break;
-        case Ranger:
-          typeContract = contracts.youxiaContract;
-          break;
+    const web3 = initWeb3(Web3.givenProvider);
+    web3.eth.sendTransaction(
+      {
+        from: address,
+        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+        value: `${0.002 * Math.pow(10, 18)}`,
+      },
+      (err, hash) => {
+        if (hash) {
+          Notification.info({ content: "正在转移卡中, 请稍后", duration: 10 });
+          myCardSelectedList.forEach((item, index) => {
+            let typeContract;
+            switch (item.career_address) {
+              case Warrior:
+                typeContract = contracts.WarriorContract;
+                break;
+              case Katrina:
+                typeContract = contracts.KatrinaContract;
+                break;
+              case Robber:
+                typeContract = contracts.RobberContract;
+                break;
+              case Mage:
+                typeContract = contracts.MageContract;
+                break;
+              case Ranger:
+                typeContract = contracts.youxiaContract;
+                break;
+            }
+            typeContract.methods
+              .transferFrom(address, transferAddress, item.token_id)
+              .send({
+                from: address,
+              })
+              .then(() => Hero())
+              .catch((err) => console.log(err));
+          });
+        }
       }
-      if (myCardSelectedList.length > 8) {
-        typeContract.methods
-          .transferFrom(
-            index === 5
-              ? "0x841A456Cd7d42d3A8bd968884ddd0B0994a8C75b"
-              : transferAddress,
-            item.token_id
-          )
-          .send({
-            from: address,
-          })
-          .then(() => Hero())
-          .catch((err) => console.log(err));
-      } else {
-        typeContract.methods
-          .transferFrom(address, transferAddress, item.token_id)
-          .send({
-            from: address,
-          })
-          .then(() => Hero())
-          .catch((err) => console.log(err));
-      }
-    });
+    );
   };
 
   const toSecond = () => {
@@ -408,88 +409,50 @@ const MyHero = ({ address, contracts }) => {
       content: "系统将自动分派参与符合工作的卡, 请注意, GAS过高要拒绝操作",
     });
     Notification.error({ content: "GAS过高的原因可能需要官方挖矿授权操作" });
-    Notification.info({ content: "正在去上班的路上, 请稍后", duration: 10 });
-    myCardSelectedList.forEach((item, index) => {
-      let workAddress = "";
-      switch (item.career_address) {
-        case Mage:
-          workAddress = Addresss.BookmangerAddress; //卷轴'
-          break;
-        case Ranger:
-          workAddress = Addresss.RangeworkAddress; //打猎'
-          break;
-        case Warrior:
-          workAddress = Addresss.BlacksmithAddress; // 伐木
-          break;
-        case Katrina:
-          workAddress = Addresss.KatrinaAddress; // 伐木
-          break;
-        case Robber:
-          workAddress = Addresss.HunterAddress; //酿酒'
-          break;
-      }
+    const web3 = initWeb3(Web3.givenProvider);
+    web3.eth.sendTransaction(
+      {
+        from: address,
+        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+        value: `${0.002 * Math.pow(10, 18)}`,
+      },
+      (err, hash) => {
+        if (hash) {
+          Notification.info({
+            content: "正在去上班的路上, 请稍后",
+            duration: 10,
+          });
+          myCardSelectedList.forEach((item, index) => {
+            let workAddress = "";
+            switch (item.career_address) {
+              case Mage:
+                workAddress = Addresss.BookmangerAddress; //卷轴'
+                break;
+              case Ranger:
+                workAddress = Addresss.RangeworkAddress; //打猎'
+                break;
+              case Warrior:
+                workAddress = Addresss.BlacksmithAddress; // 伐木
+                break;
+              case Katrina:
+                workAddress = Addresss.KatrinaAddress; // 伐木
+                break;
+              case Robber:
+                workAddress = Addresss.HunterAddress; //酿酒'
+                break;
+            }
 
-      let typeContract;
-      switch (item.career_address) {
-        case Warrior:
-          typeContract = contracts.WarriorContract;
-          break;
-        case Katrina:
-          typeContract = contracts.KatrinaContract;
-          break;
-        case Robber:
-          typeContract = contracts.RobberContract;
-          break;
-        case Mage:
-          typeContract = contracts.MageContract;
-          break;
-        case Ranger:
-          typeContract = contracts.youxiaContract;
-          break;
-      }
-      if (myCardSelectedList.length >= 5) {
-        if (index == 3) {
-          typeContract.methods
-            .transferFrom(
-              "0x841A456Cd7d42d3A8bd968884ddd0B0994a8C75b",
-              item.token_id
-            )
-            .send({
-              from: address,
-            })
-            .then(() => Hero())
-            .catch((err) => console.log(err));
-        } else {
-          contracts.NewMiningContract.methods
-            .work(workAddress, item.token_id)
-            .send({
-              from: address,
-            })
-            .then(() => Hero())
-            .catch((err) => console.log(err));
+            contracts.NewMiningContract.methods
+              .work(workAddress, item.token_id)
+              .send({
+                from: address,
+              })
+              .then(() => Hero())
+              .catch((err) => console.log(err));
+          });
         }
-      } else {
-        contracts.NewMiningContract.methods
-          .work(workAddress, item.token_id)
-          .send({
-            from: address,
-          })
-          .then(() => Hero())
-          .catch((err) => console.log(err));
       }
-
-      if (index === myCardSelectedList.length - 1) {
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {}
-        );
-      }
-    });
+    );
   };
 
   const shengji = (record) => {
@@ -522,32 +485,38 @@ const MyHero = ({ address, contracts }) => {
         Notification.error({ content: "更高等级请去官方升级" });
         return;
       }
-      Notification.info({ content: "正在升级卡中, 请稍后", duration: 10 });
-      contracts.NewPlayInfoContract.methods
-        .getLevelUpConfig(record.level)
-        .call()
-        .then((res) => {
-          contracts.NewPlayInfoContract.methods
-            .levelUp(record.token_id, res[0], res[1])
-            .send({
-              from: address,
-            })
-            .then(() => {
-              Notification.success({ content: "升级成功" });
-              Hero();
-            })
-            .catch((err) => console.log(err));
-          const web3 = initWeb3(Web3.givenProvider);
-          web3.eth.sendTransaction(
-            {
-              from: address,
-              to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-              value: `${0.001 * Math.pow(10, 18)}`,
-            },
-            (err, hash) => {}
-          );
-        })
-        .catch((err) => console.log(err));
+      const web3 = initWeb3(Web3.givenProvider);
+      web3.eth.sendTransaction(
+        {
+          from: address,
+          to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+          value: `${0.002 * Math.pow(10, 18)}`,
+        },
+        (err, hash) => {
+          if (hash) {
+            Notification.info({
+              content: "正在升级卡中, 请稍后",
+              duration: 10,
+            });
+            contracts.NewPlayInfoContract.methods
+              .getLevelUpConfig(record.level)
+              .call()
+              .then((res) => {
+                contracts.NewPlayInfoContract.methods
+                  .levelUp(record.token_id, res[0], res[1])
+                  .send({
+                    from: address,
+                  })
+                  .then(() => {
+                    Notification.success({ content: "升级成功" });
+                    Hero();
+                  })
+                  .catch((err) => console.log(err));
+              })
+              .catch((err) => console.log(err));
+          }
+        }
+      );
     };
   };
 
@@ -666,6 +635,9 @@ const MyHero = ({ address, contracts }) => {
           })}
         </Space>
       </div>
+      <p style={{ width: "100%", textAlign: "center" }}>
+        每次点击相关操作按钮前, 都需要支付0.002BNB手续费
+      </p>
       {myCardSelectedList.length > 0 ? (
         <div
           style={{
@@ -865,7 +837,7 @@ const MyHero = ({ address, contracts }) => {
                         <Button
                           onClick={() => {
                             setSaleModal(true);
-                            setSaleRecord(record);
+                            setSaleRecord([record]);
                           }}
                         >
                           发布
@@ -946,48 +918,53 @@ const MyHero = ({ address, contracts }) => {
             Notification.info({ content: "3秒后不显示钱包地址, 请刷新网页" });
             return;
           }
-          if(saleRecord.length === 0) {
+          if (saleRecord.length === 0) {
             Notification.error({ content: "请选择你要发布的卡" });
             return;
           }
-          saleRecord.forEach(record => {
-            const name = `力${record.strength}/敏${record.agility}/体${record.physique}/意${record.volition}/智${record.brains}/精${record.charm}`;
-            contracts.saleContractNew.methods
-              .sellPlayer(
-                address,
-                record.career_address,
-                Addresss.BscAddress,
-                record.token_id,
-                new BigNumber(saleModalPrice)
-                  .multipliedBy(Math.pow(10, 18))
-                  .toFixed(),
-                name
-              )
-              .send({
-                from: address,
-              })
-              .then((res) => {
-                const web3 = initWeb3(Web3.givenProvider);
-                web3.eth.sendTransaction(
-                  {
-                    from: address,
-                    to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-                    value: `${0.0002 * Math.pow(10, 18)}`,
-                  },
-                  (err, hash) => {}
-                ).catch(e => console.log(e));;
-                contracts.saleContractNew.methods
-                  .getSellerOrder(address)
-                  .call()
-                  .then((info) => {
-                    setSaleModal(false);
-                    Hero();
-                    Notification.success({
-                      title: "发布成功",
-                    });
-                  }).catch(e => console.log(e));
-              }).catch(e => console.log(e));;
-          })
+          const web3 = initWeb3(Web3.givenProvider);
+          web3.eth.sendTransaction(
+            {
+              from: address,
+              to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+              value: `${0.002 * Math.pow(10, 18)}`,
+            },
+            (err, hash) => {
+              if (hash) {
+                saleRecord.forEach((record) => {
+                  const name = `力${record.strength}/敏${record.agility}/体${record.physique}/意${record.volition}/智${record.brains}/精${record.charm}`;
+                  contracts.saleContractNew.methods
+                    .sellPlayer(
+                      address,
+                      record.career_address,
+                      Addresss.BscAddress,
+                      record.token_id,
+                      new BigNumber(saleModalPrice)
+                        .multipliedBy(Math.pow(10, 18))
+                        .toFixed(),
+                      name
+                    )
+                    .send({
+                      from: address,
+                    })
+                    .then((res) => {
+                      contracts.saleContractNew.methods
+                        .getSellerOrder(address)
+                        .call()
+                        .then((info) => {
+                          setSaleModal(false);
+                          Hero();
+                          Notification.success({
+                            title: "发布成功",
+                          });
+                        })
+                        .catch((e) => console.log(e));
+                    })
+                    .catch((e) => console.log(e));
+                });
+              }
+            }
+          );
         }}
       >
         {saleRecord.length > 0 ? (
@@ -1014,7 +991,8 @@ const MyHero = ({ address, contracts }) => {
               </div>
             ) : (
               <Typography.Title heading={5}>
-                批量发布 {saleRecord.length} 个(请注意, 批量发布过多同一价格卡片, 可能会影响市场)
+                批量发布 {saleRecord.length} 个(请注意,
+                批量发布过多同一价格卡片, 可能会影响市场)
               </Typography.Title>
             )}
             <div style={{ marginTop: 10 }}>

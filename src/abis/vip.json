@@ -99,6 +99,10 @@
 		"type": "event"
 	},
 	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -122,6 +126,11 @@
 			{
 				"internalType": "uint256",
 				"name": "_t",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_b",
 				"type": "uint256"
 			}
 		],
@@ -504,5 +513,9 @@
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ]

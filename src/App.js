@@ -8,6 +8,7 @@ import { Routes, Route } from "react-router-dom";
 import LowPrice from "./pages/LowPrice";
 import { useEffect, useState } from "react";
 import { Addresss } from "./utils/emuns";
+import { BigNumber } from "bignumber.js";
 
 import hreoAbi from "./abis/hreoabi.json";
 import mingAbi from "./abis/mingAbi.json";
@@ -28,6 +29,54 @@ import { initWeb3 } from "./utils/util";
 import MaoXian from "./pages/MaoXian";
 import NewCard from "./pages/NewCard";
 
+import zh_CN from "@douyinfe/semi-ui/lib/es/locale/source/zh_CN";
+import en_US from "@douyinfe/semi-ui/lib/es/locale/source/en_US";
+import { LocaleProvider } from "@douyinfe/semi-ui";
+import cookie from "react-cookies";
+import NowAddress from "./components/NowAddress";
+
+zh_CN["ToolCat"] = {
+  AppTitle: "工具猫",
+  dark: "暗色模式",
+  light: "亮色模式",
+  Language: "EN",
+  Menu: {
+    chouka: "抽卡",
+    hero: "我的英雄",
+    wankuang: "日常挖矿",
+    maoxian: "冒险",
+    dibanjia: "地板价",
+  },
+  nowaddress: "当前地址",
+  card: {
+    title: "抽卡暴富",
+    onecard: "单抽",
+    fivecard: "五连抽",
+    tencard: "十连抽",
+  },
+};
+
+en_US["ToolCat"] = {
+  AppTitle: "ToolCat",
+  dark: "Dark Mode",
+  light: "Light Mode",
+  Language: "中文",
+  Menu: {
+    chouka: "New Crad",
+    hero: "My Hero",
+    wankuang: "Daily Dig",
+    maoxian: "Adventure",
+    dibanjia: "Price Floor",
+  },
+  nowaddress: "Address",
+  card: {
+    title: "Card Rich",
+    onecard: "Single",
+    fivecard: "5 Smoke",
+    tencard: "10 Smoke",
+  },
+};
+
 const { Content } = Layout;
 
 const network_chainId = 56;
@@ -46,26 +95,23 @@ const chain = {
 const App = () => {
   const { connect, metaState } = useMetamask();
   const provider = window.ethereum;
+  const AppLanguages = { zh_CN, en_US };
+  const [locale, setLocale] = useState(
+    AppLanguages[cookie.load("lang") || "zh_CN"]
+  );
   const [address, setAddress] = useState("");
   const [contracts, setContracts] = useState({});
+  const [contractss, setContractss] = useState(0);
   useEffect(() => {
     onConnnect();
     initContract();
   }, []);
 
-  const getSign = (address) => {
-    // fetch("https://game.binaryx.pro/minev2/getAddressNonce?address=" + address)
-    //   .then((res) => res.json())
-    //   .then((res) => {
-    //     console.log(res)
-    //     const nonce = res.data.result;
-    //     const web3 = initWeb3(Web3.givenProvider);
-    //     new web3.eth.personal.sign(
-    //       web3.utils.utf8ToHex(nonce),
-    //       address,
-    //       "password"
-    //     ).then((e) => console.log(e));
-    //   });
+  const toogleLanguage = (type) => {
+    return () => {
+      setLocale(AppLanguages[type || "zh_CN"]);
+      cookie.save("lang", "zh_CN");
+    };
   };
 
   const onConnnect = async () => {
@@ -85,8 +131,16 @@ const App = () => {
         if (accounts.length > 0) {
           const addr = accounts[0];
           setAddress(addr);
-          getSign(addr);
-          check(addr);
+          // contracts.VipContract.methods
+          //   .addVIP(
+          //     1638331932,
+          //     '10000000000000000000'
+          //   )
+          //   .send({ from: addr })
+          //   // .call()
+          //   .then((res) => console.log(res)).catch(err => console.log(err));
+          // contracts.VipContract.methods.VIPS(addr).call().
+          // then(res => setContractss(res)).catch(e => console.log(e))
         }
         MetaMaskEvent();
       } catch (error) {
@@ -108,23 +162,13 @@ const App = () => {
     });
   };
 
-  const check = (address) => {
-    // const web3 = initWeb3(Web3.givenProvider);
-    // contracts.VipContract = new web3.eth.Contract(
-    //   vipAbi,
-    //   "0x9100bDaCD7711694181E35b47d0cC64a5dA90915"
-    // );
-    // contracts.VipContract.methods
-    //   .VIPS(address)
-    //   .then((res) => console.log(1111, res));
-  };
-
   const initContract = () => {
     const web3 = initWeb3(Web3.givenProvider);
     contracts.VipContract = new web3.eth.Contract(
       vipAbi,
-      "0x9100bDaCD7711694181E35b47d0cC64a5dA90915"
+      "0xB09122F5D5db0386E38deE7C08f99c03f0484C1e"
     );
+
     contracts.WarriorContract = new web3.eth.Contract(
       hreoAbi,
       Addresss.WarriorAddress
@@ -201,49 +245,100 @@ const App = () => {
       gameAbi,
       Addresss.gameManager
     );
-    setContracts(contracts);
   };
 
   return (
-    <Layout>
-      <Head />
-      <Banner
-        style={{ paddingTop: 70 }}
-        type="warning"
-        description="BNX流量高峰期间会开启防DDOS攻击, 会出现数据不显示的情况, 等高峰期过了就可以了, 发现GAS过高, 请暂时不要操作那操作"
-      />
-      <Content
-        style={{ paddingTop: 70, backgroundColor: "var(--semi-color-bg-1)" }}
-      >
-        <Routes>
-          <Route
-            path="/"
-            element={<MyHero address={address} contracts={contracts} />}
-          />
-          <Route
-            path="/new"
-            element={<NewCard address={address} contracts={contracts} />}
-          />
-          <Route
-            path="/hero"
-            element={<MyHero address={address} contracts={contracts} />}
-          />
-          <Route
-            path="/gold"
-            element={<Gold address={address} contracts={contracts} />}
-          />
-          <Route
-            path="/low"
-            element={<LowPrice address={address} contracts={contracts} />}
-          />
-          <Route
-            path="/mx"
-            element={<MaoXian address={address} contracts={contracts} />}
-          />
-        </Routes>
-      </Content>
-      <BackTop />
-    </Layout>
+    <LocaleProvider locale={locale}>
+      <Layout>
+        <Head
+          menu={locale["ToolCat"].Menu}
+          title={locale["ToolCat"].AppTitle}
+          dark={locale["ToolCat"].dark}
+          light={locale["ToolCat"].light}
+          Language={locale["ToolCat"].Language}
+          toogleLanguage={toogleLanguage}
+        />
+        <Banner
+          style={{ paddingTop: 70 }}
+          type="warning"
+          description="BNX流量高峰期间会开启防DDOS攻击, 会出现数据不显示的情况, 等高峰期过了就可以了, 发现GAS过高, 请暂时不要操作那操作, 另外, 工具猫开始收费, 请注意留意提示"
+        />
+        <Content
+          style={{ paddingTop: 70, backgroundColor: "var(--semi-color-bg-1)" }}
+        >
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <MyHero
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+            <Route
+              path="/new"
+              element={
+                <NewCard
+                  card={locale["ToolCat"].card}
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+            <Route
+              path="/hero"
+              element={
+                <MyHero
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+            <Route
+              path="/gold"
+              element={
+                <Gold
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+            <Route
+              path="/low"
+              element={
+                <LowPrice
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+            <Route
+              path="/mx"
+              element={
+                <MaoXian
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
+          </Routes>
+        </Content>
+        <BackTop />
+      </Layout>
+    </LocaleProvider>
   );
 };
 

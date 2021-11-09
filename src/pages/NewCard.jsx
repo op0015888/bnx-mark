@@ -11,7 +11,7 @@ const MyHeroContainer = styled.div`
   min-height: 100vh;
   padding: 20px;
 `;
-const NewCard = ({ address, contracts }) => {
+const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
   const [crads, setCards] = useState([]);
 
   const getOneCard = async (num, trans) => {
@@ -19,11 +19,11 @@ const NewCard = ({ address, contracts }) => {
       Notification.info({ content: "3秒后不显示钱包地址, 请刷新网页" });
       return;
     }
-    Notification.info({ content: "抽卡中, 请耐心等待", duration: 20 });
     try {
       const max = await contracts.NewPlayInfoContract.methods
         .getUserRight(address)
         .call();
+      console.log(max);
       if (max[0] === "0" && max[1] === "0") {
         Notification.info({ content: "今日抽卡次数已用完, 请换帐号继续" });
         return;
@@ -48,27 +48,46 @@ const NewCard = ({ address, contracts }) => {
         .call()
         .catch((e) => console.log(e));
       const s = address + new Date().getTime();
-      if (trans && num === 1) {
+      if (trans && (num === 5 || num === 10)) {
         const web3 = initWeb3(Web3.givenProvider);
         web3.eth.sendTransaction(
           {
             from: address,
             to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.0035 * Math.pow(10, 18)}`,
+            value: `${0.002 * Math.pow(10, 18)}`,
           },
-          (err, hash) => {}
+          (err, hash) => {
+            if (hash) {
+              Notification.info({
+                content: "抽卡中, 请耐心等待",
+                duration: 20,
+              });
+              contracts.NewPlayInfoContract.methods
+                .newPlayerTrade(n, i, s)
+                .send({
+                  from: address,
+                  value: a,
+                })
+                .then((e) => {
+                  getplayerReqs(address, s, num, trans);
+                })
+                .catch((e) => console.log(e));
+            }
+          }
         );
+      } else {
+        Notification.info({ content: "抽卡中, 请耐心等待", duration: 20 });
+        contracts.NewPlayInfoContract.methods
+          .newPlayerTrade(n, i, s)
+          .send({
+            from: address,
+            value: a,
+          })
+          .then((e) => {
+            getplayerReqs(address, s, num, trans);
+          })
+          .catch((e) => console.log(e));
       }
-      contracts.NewPlayInfoContract.methods
-        .newPlayerTrade(n, i, s)
-        .send({
-          from: address,
-          value: a,
-        })
-        .then((e) => {
-          getplayerReqs(address, s, num, trans);
-        })
-        .catch((e) => console.log(e));
     } catch (error) {
       console.log(error);
     }
@@ -132,9 +151,13 @@ const NewCard = ({ address, contracts }) => {
   return (
     <MyHeroContainer>
       <Typography.Title style={{ textAlign: "center" }}>
-        抽卡暴富
+        {card.title}
       </Typography.Title>
-      <NowAddress address={address} />
+      <NowAddress
+        address={address}
+        nowaddress={nowaddress}
+        contractss={contractss}
+      />
       <div
         style={{
           display: "flex",
@@ -148,23 +171,26 @@ const NewCard = ({ address, contracts }) => {
           style={{ margin: 3 }}
           onClick={() => getOneCard(1, false)}
         >
-          单抽
+          {card.onecard}
         </Button>
         <Button
           type="primary"
           style={{ margin: 3 }}
           onClick={() => getOneCard(5, true)}
         >
-          五连抽
+          {card.fivecard}
         </Button>
         <Button
           type="primary"
           style={{ margin: 3 }}
           onClick={() => getOneCard(10, true)}
         >
-          十连抽
+          {card.tencard}
         </Button>
       </div>
+      <p style={{ width: "100%", textAlign: "center" }}>
+        五抽,十抽, 都需要支付一笔0.002BNB手续费
+      </p>
       <Table
         rowKey={(record) => record.token_id}
         columns={isMobile() ? CardMColums : MyHeroColums}

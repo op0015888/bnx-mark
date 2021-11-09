@@ -1,26 +1,24 @@
-import { IconCopyStroked } from "@douyinfe/semi-icons";
-import { Typography } from "@douyinfe/semi-ui";
-import copy from "copy-to-clipboard";
-import { isMobile } from "../utils/util";
+import { Typography, Button } from "@douyinfe/semi-ui";
+import icons from "../assets/vip.png";
 
-const NowAddress = ({ address }) => {
+const NowAddress = ({ address, contractss, nowaddress = "" }) => {
   return (
     <div
       style={{
         display: "flex",
         justifyContent: "center",
-        alignItems: 'center',
+        alignItems: "center",
         margin: 10,
         flexWrap: "wrap",
         color: "var(--semi-color-text-0)",
       }}
     >
-      <span>当前地址:</span>
-      <Typography.Text
-        copyable
-      >
-        {address}
-      </Typography.Text>
+      {/* {contractss > Number(String(new Date().getTime()).substr(0, 10)) ? (
+        <img src={icons} style={{ width: 20, height: 20, marginRight: 10 }} />
+      ) : (
+        <Button>充值会员</Button>
+      )} */}
+      <Typography.Text copyable style={{color: (contractss > Number(String(new Date().getTime()).substr(0, 10))) ? "red" : "black"}}>{address}</Typography.Text>
     </div>
   );
 };

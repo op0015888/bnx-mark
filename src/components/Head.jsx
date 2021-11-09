@@ -8,13 +8,14 @@ import {
   IconShield,
   IconSun,
   IconUnderline,
+  IconLanguage
 } from "@douyinfe/semi-icons";
 import { Layout, Nav, Button, Popover, Typography } from "@douyinfe/semi-ui";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { isMobile } from "../utils/util";
 const { Header } = Layout;
-const Head = () => {
+const Head = ({menu, light, dark, title, Language, toogleLanguage}) => {
   const body = document.body;
 
   const [isTheme, setTheme] = useState(body.hasAttribute("theme-mode"));
@@ -48,14 +49,14 @@ const Head = () => {
             {isMobile() ? (
               ""
             ) : (
-              <Typography.Title heading={4}>工具猫</Typography.Title>
+              <Typography.Title heading={4}>{title}</Typography.Title>
             )}
           </Nav.Header>
-          <Popover arrowPointAtCenter showArrow trigger="hover" content="抽卡">
+          <Popover arrowPointAtCenter showArrow trigger="hover" content={menu.chouka}>
             <Link to="/new">
               <Nav.Item
                 itemKey="card"
-                text={isMobile() ? "" : "抽卡"}
+                text={isMobile() ? "" : menu.chouka}
                 icon={
                   <IconGallery
                     size="large"
@@ -74,12 +75,12 @@ const Head = () => {
             arrowPointAtCenter
             showArrow
             trigger="hover"
-            content="我的英雄"
+            content={menu.hero}
           >
             <Link to="/hero">
               <Nav.Item
                 itemKey="hero"
-                text={isMobile() ? "" : "我的英雄"}
+                text={isMobile() ? "" : menu.hero}
                 icon={
                   <IconUserCircle
                     size="large"
@@ -98,12 +99,12 @@ const Head = () => {
             arrowPointAtCenter
             showArrow
             trigger="hover"
-            content="日常挖矿"
+            content={menu.wankuang}
           >
             <Link to="/gold">
               <Nav.Item
                 itemKey="gold"
-                text={isMobile() ? "" : "日常挖矿"}
+                text={isMobile() ? "" : menu.wankuang}
                 icon={
                   <IconBold
                     size="large"
@@ -118,11 +119,11 @@ const Head = () => {
               />
             </Link>
           </Popover>
-          <Popover arrowPointAtCenter showArrow trigger="hover" content="冒险">
+          <Popover arrowPointAtCenter showArrow trigger="hover" content={menu.maoxian}>
             <Link to="/mx">
               <Nav.Item
                 itemKey="mx"
-                text={isMobile() ? "" : "冒险"}
+                text={isMobile() ? "" : menu.maoxian}
                 icon={
                   <IconShield
                     size="large"
@@ -141,12 +142,12 @@ const Head = () => {
             arrowPointAtCenter
             showArrow
             trigger="hover"
-            content="地板价"
+            content={menu.dibanjia}
           >
             <Link to="/low">
               <Nav.Item
                 itemKey="mx"
-                text={isMobile() ? "" : "地板价"}
+                text={isMobile() ? "" : menu.dibanjia}
                 icon={
                   <IconUnderline
                     size="large"
@@ -165,7 +166,7 @@ const Head = () => {
             <Popover
               arrowPointAtCenter
               showArrow
-              content={isTheme ? "切换亮色模式" : "切换暗色模式"}
+              content={isTheme ? light : dark}
               trigger="hover"
               style={{
                 backgroundColor: isTheme ? "#FFF" : "#666",
@@ -185,6 +186,27 @@ const Head = () => {
                 }}
               />
             </Popover>
+            {/* <Popover
+              arrowPointAtCenter
+              showArrow
+              content={Language}
+              trigger="hover"
+              style={{
+                backgroundColor: isTheme ? "#FFF" : "#666",
+                borderColor: isTheme ? "#FFF" : "#666",
+                color: isTheme ? "#666" : "#FFF",
+              }}
+            >
+              <Button
+                theme="borderless"
+                onClick={toogleLanguage(Language === '中文' ? 'zh_CN' : 'en_US')}
+                icon={<IconLanguage size="large" />}
+                style={{
+                  color: "var(--semi-color-text-0)",
+                  marginRight: "12px",
+                }}
+              />
+            </Popover> */}
           </Nav.Footer>
         </Nav>
       </div>
