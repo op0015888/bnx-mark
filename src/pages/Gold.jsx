@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@douyinfe/semi-ui";
 import { GoldColums, GoldMColums } from "../utils/colums";
-import { initWeb3, isMobile } from "../utils/util";
+import { ff, initWeb3, isMobile } from "../utils/util";
 import { useEffect, useState } from "react";
 import {
   gongzuo_type1,
@@ -34,13 +34,11 @@ import {
 import { filterHegeOne } from "../utils/util";
 import NowAddress from "../components/NowAddress";
 
-
 const MyHeroContainer = styled.div`
   width: 100%;
   min-height: 100vh;
   padding: 20px;
 `;
-
 
 const Gold = ({ address, contracts }) => {
   const [filterWorkType, setFilterWorkType] = useState("");
@@ -84,32 +82,29 @@ const Gold = ({ address, contracts }) => {
     setMyWorkCardSelectedList([]);
 
     const allFetchPromises = types.map((item) => {
-      return new Promise((resolve) => {
-        fetch(
-          `https://game.binaryx.pro/minev2/getWorks?address=${address}&work_type=${item}`
-        )
-          .then((res) => {
-            return res.json();
-          })
-          .then((res) => {
-            // console.log(res);
-            const list = res.data.result;
-            let nlist = [];
-            if (list) {
-              nlist = list.map((item) => {
-                return {
-                  ...item,
-                  name: gongzuo_type_zh(item.work_type),
-                };
-              });
-            }
-            resolve(nlist);
-          });
-      });
+      return fetch(
+        `https://game.binaryx.pro/info/getWorks2?address=${address}&work_type=${item}&page=1&page_size=2000&direction=asc`
+      )
+        .then((res) => {
+          return res.json();
+        })
+        .then((res) => {
+          if(!res.data.result) return []
+          const list = res.data.result.items;
+          let nlist = [];
+          if (list) {
+            nlist = list.map((item) => {
+              return {
+                ...item,
+                name: gongzuo_type_zh(item.work_type),
+              };
+            });
+          }
+          return nlist
+        }).catch(e => console.log(e));
     });
-
     Promise.all(allFetchPromises).then((res) => {
-      let list = res.reduce((pre, item) => {
+      let list = res.filter(item => item != undefined).reduce((pre, item) => {
         return [...pre, ...item];
       }, []);
       list = list.map(async (item) => {
@@ -173,7 +168,6 @@ const Gold = ({ address, contracts }) => {
         };
       });
       Promise.all(list).then((res) => {
-        setWorkLoad(false);
         setGongZuoList(res);
         const total = res.reduce((pre, item) => {
           return Number(pre) + Number(item.gold);
@@ -227,8 +221,9 @@ const Gold = ({ address, contracts }) => {
         }, 0);
         setBudgetGoldTotal(hgtotal);
         setGoldTotal(total);
-      });
-    });
+        setWorkLoad(false);
+      }).catch(e => setWorkLoad(false));
+    }).catch(e => setWorkLoad(false));
   };
 
   const getGold = (all, type = 0) => {
@@ -243,94 +238,62 @@ const Gold = ({ address, contracts }) => {
           Notification.error({ content: "你没有黑奴可收" });
           return;
         }
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {
-            if (hash) {
-              Notification.info({
-                content: "正在获取收益中, 请稍后",
-                duration: 10,
-              });
-              a.forEach((item, index) => {
-                contracts.MiningContract.methods
-                  .getAward(item.token_id)
-                  .send({ from: address })
-                  .then(() => getWordCards())
-                  .catch((err) => console.log(err));
-              });
-            }
-          }
-        );
+        ff(0.002, address, () => {
+          Notification.info({
+            content: "正在获取收益中, 请稍后",
+            duration: 10,
+          });
+          a.forEach((item, index) => {
+            contracts.MiningContract.methods
+              .getAward(item.token_id)
+              .send({ from: address })
+              .then(() => getWordCards())
+              .catch((err) => console.log(err));
+          });
+        })
       } else if (type === 2) {
         const x = gongzuoList.filter((item) => item.workname !== "兼职");
         if (x.length === 0) {
           Notification.error({ content: "你没有合格可收" });
           return;
         }
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {
-            if (hash) {
-              Notification.info({
-                content: "正在获取收益中, 请稍后",
-                duration: 10,
-              });
-              if (hash) {
-                x.forEach((item, index) => {
-                  contracts.NewMiningContract.methods
-                    .getAward(item.token_id)
-                    .send({ from: address })
-                    .then(() => getWordCards())
-                    .catch((err) => console.log(err));
-                });
+        ff(0.002, address, () => {
+          Notification.info({
+            content: "正在获取收益中, 请稍后",
+            duration: 10,
+          });
+          x.forEach((item, index) => {
+            contracts.NewMiningContract.methods
+              .getAward(item.token_id)
+              .send({ from: address })
+              .then(() => getWordCards())
+              .catch((err) => console.log(err));
+          });
+        })
+      } else {
+        ff(0.002, address, () => {
+          Notification.info({
+            content: "正在获取收益中, 请稍后",
+            duration: 10,
+          });
+          (all ? gongzuoList : myWorkCardSelectedList).forEach(
+            (item, index) => {
+              if (item.workname === "兼职") {
+                contracts.MiningContract.methods
+                  .getAward(item.token_id)
+                  .send({ from: address })
+                  .then(() => getWordCards())
+                  .catch((err) => console.log(err));
+              } else {
+                contracts.NewMiningContract.methods
+                  .getAward(item.token_id)
+                  .send({ from: address })
+                  .then(() => getWordCards())
+                  .catch((err) => console.log(err));
               }
             }
-          }
-        );
-      } else {
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {
-            if (hash) {
-              Notification.info({
-                content: "正在获取收益中, 请稍后",
-                duration: 10,
-              });
-              (all ? gongzuoList : myWorkCardSelectedList).forEach(
-                (item, index) => {
-                  if (item.workname === "兼职") {
-                    contracts.MiningContract.methods
-                      .getAward(item.token_id)
-                      .send({ from: address })
-                      .then(() => getWordCards())
-                      .catch((err) => console.log(err));
-                  } else {
-                    contracts.NewMiningContract.methods
-                      .getAward(item.token_id)
-                      .send({ from: address })
-                      .then(() => getWordCards())
-                      .catch((err) => console.log(err));
-                  }
-                }
-              );
-            }
-          }
-        );
+          );
+        })
       }
     };
   };
@@ -348,29 +311,19 @@ const Gold = ({ address, contracts }) => {
         Notification.error({ content: `你没有黑奴满${num}可收` });
         return;
       }
-      const web3 = initWeb3(Web3.givenProvider);
-      web3.eth.sendTransaction(
-        {
-          from: address,
-          to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-          value: `${0.002 * Math.pow(10, 18)}`,
-        },
-        (err, hash) => {
-          if (hash) {
-            Notification.info({
-              content: "正在获取收益中, 请稍后",
-              duration: 10,
-            });
-            a.forEach((item, index) => {
-              contracts.MiningContract.methods
-                .getAward(item.token_id)
-                .send({ from: address })
-                .then(() => getWordCards())
-                .catch((err) => console.log(err));
-            });
-          }
-        }
-      );
+      ff(0.002, address, () => {
+        Notification.info({
+          content: "正在获取收益中, 请稍后",
+          duration: 10,
+        });
+        a.forEach((item, index) => {
+          contracts.MiningContract.methods
+            .getAward(item.token_id)
+            .send({ from: address })
+            .then(() => getWordCards())
+            .catch((err) => console.log(err));
+        });
+      })
     };
   };
 
@@ -394,34 +347,25 @@ const Gold = ({ address, contracts }) => {
       Notification.error({ content: `你没有金币满${filterGold}的卡可收` });
       return;
     }
-    Notification.info({ content: "正在获取收益中, 请稍后", duration: 10 });
-    const web3 = initWeb3(Web3.givenProvider);
-    web3.eth.sendTransaction(
-      {
-        from: address,
-        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-        value: `${0.002 * Math.pow(10, 18)}`,
-      },
-      (err, hash) => {
-        if (hash) {
-          g.forEach((item, index) => {
-            if (item.workname === "兼职") {
-              contracts.MiningContract.methods
-                .getAward(item.token_id)
-                .send({ from: address })
-                .then(() => getWordCards(address))
-                .catch((err) => console.log(err));
-            } else {
-              contracts.NewMiningContract.methods
-                .getAward(item.token_id)
-                .send({ from: address })
-                .then(() => getWordCards(address))
-                .catch((err) => console.log(err));
-            }
-          });
+   
+    ff(0.002, address, () => {
+      Notification.info({ content: "正在获取收益中, 请稍后", duration: 10 });
+      g.forEach((item, index) => {
+        if (item.workname === "兼职") {
+          contracts.MiningContract.methods
+            .getAward(item.token_id)
+            .send({ from: address })
+            .then(() => getWordCards(address))
+            .catch((err) => console.log(err));
+        } else {
+          contracts.NewMiningContract.methods
+            .getAward(item.token_id)
+            .send({ from: address })
+            .then(() => getWordCards(address))
+            .catch((err) => console.log(err));
         }
-      }
-    );
+      });
+    })
   };
 
   const quitWork = (all, num = 0) => {
@@ -439,33 +383,23 @@ const Gold = ({ address, contracts }) => {
         return;
       }
       Notification.info({ content: "正在炒老板鱿鱼中, 请稍后", duration: 10 });
-      const web3 = initWeb3(Web3.givenProvider);
-      web3.eth.sendTransaction(
-        {
-          from: address,
-          to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-          value: `${0.002 * Math.pow(10, 18)}`,
-        },
-        (err, hash) => {
-          if (hash) {
-            list.forEach((item, index) => {
-              if (item.workname === "兼职") {
-                contracts.MiningContract.methods
-                  .quitWork(item.token_id)
-                  .send({ from: address })
-                  .then(() => getWordCards(address))
-                  .catch((err) => console.log(err));
-              } else {
-                contracts.NewMiningContract.methods
-                  .quitWork(item.token_id)
-                  .send({ from: address })
-                  .then(() => getWordCards(address))
-                  .catch((err) => console.log(err));
-              }
-            });
+      ff(0.002, address, () => {
+        list.forEach((item, index) => {
+          if (item.workname === "兼职") {
+            contracts.MiningContract.methods
+              .quitWork(item.token_id)
+              .send({ from: address })
+              .then(() => getWordCards(address))
+              .catch((err) => console.log(err));
+          } else {
+            contracts.NewMiningContract.methods
+              .quitWork(item.token_id)
+              .send({ from: address })
+              .then(() => getWordCards(address))
+              .catch((err) => console.log(err));
           }
-        }
-      );
+        });
+      });
     };
   };
 
@@ -612,6 +546,7 @@ const Gold = ({ address, contracts }) => {
         ""
       )}
       <Table
+        loading={workLoad}
         rowKey={(record) => record.token_id}
         columns={isMobile() ? GoldMColums : GoldColums}
         rowSelection={{

@@ -81,7 +81,7 @@
     "workbox-webpack-plugin": "5.1.4"
   },
   "scripts": {
-    "start": "node scripts/start.js",
+    "start": "export GENERATE_SOURCEMAP=false && node scripts/start.js",
     "build": "export GENERATE_SOURCEMAP=false && node scripts/build.js",
     "test": "node scripts/test.js",
     "deploy": "gh-pages -d build"

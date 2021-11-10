@@ -8,7 +8,6 @@ import { Routes, Route } from "react-router-dom";
 import LowPrice from "./pages/LowPrice";
 import { useEffect, useState } from "react";
 import { Addresss } from "./utils/emuns";
-import { BigNumber } from "bignumber.js";
 
 import hreoAbi from "./abis/hreoabi.json";
 import mingAbi from "./abis/mingAbi.json";
@@ -25,6 +24,10 @@ import newsaleAbi from "./abis/newsaleAbi.json";
 import goldAbi from "./abis/gold.json";
 import bnxAbi from "./abis/bnx.json";
 import vipAbi from "./abis/vip.json";
+import fightAbi from './abis/fight.json'
+import amzAbi from './abis/amz.json'
+import tokenAbi from './abis/token.json'
+import poolAbi from './abis/pool.json'
 import { initWeb3 } from "./utils/util";
 import MaoXian from "./pages/MaoXian";
 import NewCard from "./pages/NewCard";
@@ -33,7 +36,7 @@ import zh_CN from "@douyinfe/semi-ui/lib/es/locale/source/zh_CN";
 import en_US from "@douyinfe/semi-ui/lib/es/locale/source/en_US";
 import { LocaleProvider } from "@douyinfe/semi-ui";
 import cookie from "react-cookies";
-import NowAddress from "./components/NowAddress";
+import BanShouWan from "./pages/BanShouWan";
 
 zh_CN["ToolCat"] = {
   AppTitle: "工具猫",
@@ -79,7 +82,6 @@ en_US["ToolCat"] = {
 
 const { Content } = Layout;
 
-const network_chainId = 56;
 const chain = {
   chainId: "0x38",
   chainName: "BSC",
@@ -131,16 +133,6 @@ const App = () => {
         if (accounts.length > 0) {
           const addr = accounts[0];
           setAddress(addr);
-          // contracts.VipContract.methods
-          //   .addVIP(
-          //     1638331932,
-          //     '10000000000000000000'
-          //   )
-          //   .send({ from: addr })
-          //   // .call()
-          //   .then((res) => console.log(res)).catch(err => console.log(err));
-          // contracts.VipContract.methods.VIPS(addr).call().
-          // then(res => setContractss(res)).catch(e => console.log(e))
         }
         MetaMaskEvent();
       } catch (error) {
@@ -168,7 +160,23 @@ const App = () => {
       vipAbi,
       "0xB09122F5D5db0386E38deE7C08f99c03f0484C1e"
     );
-
+    
+    contracts.fightContract = new web3.eth.Contract(
+      fightAbi,
+      Addresss.fightAddress
+    );
+    contracts.tokenContract = new web3.eth.Contract(
+      tokenAbi,
+      Addresss.tokenAddress
+    );
+    contracts.amzContract = new web3.eth.Contract(
+      amzAbi,
+      Addresss.amzAddress
+    );
+    contracts.poolContract = new web3.eth.Contract(
+      poolAbi,
+      Addresss.poolAddress
+    );
     contracts.WarriorContract = new web3.eth.Contract(
       hreoAbi,
       Addresss.WarriorAddress
@@ -334,7 +342,19 @@ const App = () => {
                 />
               }
             />
+             <Route
+              path="/shou"
+              element={
+                <BanShouWan
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
           </Routes>
+          
         </Content>
         <BackTop />
       </Layout>

@@ -18,7 +18,21 @@ const NowAddress = ({ address, contractss, nowaddress = "" }) => {
       ) : (
         <Button>充值会员</Button>
       )} */}
-      <Typography.Text copyable style={{color: (contractss > Number(String(new Date().getTime()).substr(0, 10))) ? "red" : "black"}}>{address}</Typography.Text>
+      <Typography.Text
+        copyable
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          color:
+            contractss > Number(String(new Date().getTime()).substr(0, 10))
+              ? "red"
+              : "var(--semi-color-text-0)",
+        }}
+      >
+        {address}
+      </Typography.Text>
     </div>
   );
 };

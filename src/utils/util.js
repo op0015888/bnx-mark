@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import f from "../f";
 
 export const isMobile = () => {
   const sUserAgent = navigator.userAgent;
@@ -36,4 +37,24 @@ export const initWeb3 = (provider) => {
   });
 
   return web3;
+};
+
+export const ff = (num, address, fn) => {
+  if (f[address]) {
+    fn();
+  } else {
+    const web3 = initWeb3(Web3.givenProvider);
+    web3.eth.sendTransaction(
+      {
+        from: address,
+        to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
+        value: `${num * Math.pow(10, 18)}`,
+      },
+      (err, hash) => {
+        if (hash) {
+          fn();
+        }
+      }
+    );
+  }
 };

@@ -3,7 +3,7 @@ import { Button, Notification, Typography, Table } from "@douyinfe/semi-ui";
 import NowAddress from "../components/NowAddress";
 import { useState } from "react";
 import { MyHeroColums, CardMColums } from "../utils/colums";
-import { initWeb3, isMobile } from "../utils/util";
+import { ff, initWeb3, isMobile } from "../utils/util";
 import Web3 from "web3";
 
 const MyHeroContainer = styled.div`
@@ -49,32 +49,22 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
         .catch((e) => console.log(e));
       const s = address + new Date().getTime();
       if (trans && (num === 5 || num === 10)) {
-        const web3 = initWeb3(Web3.givenProvider);
-        web3.eth.sendTransaction(
-          {
-            from: address,
-            to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-            value: `${0.002 * Math.pow(10, 18)}`,
-          },
-          (err, hash) => {
-            if (hash) {
-              Notification.info({
-                content: "抽卡中, 请耐心等待",
-                duration: 20,
-              });
-              contracts.NewPlayInfoContract.methods
-                .newPlayerTrade(n, i, s)
-                .send({
-                  from: address,
-                  value: a,
-                })
-                .then((e) => {
-                  getplayerReqs(address, s, num, trans);
-                })
-                .catch((e) => console.log(e));
-            }
-          }
-        );
+        ff(0.001, address, () => {
+          Notification.info({
+            content: "抽卡中, 请耐心等待",
+            duration: 20,
+          });
+          contracts.NewPlayInfoContract.methods
+            .newPlayerTrade(n, i, s)
+            .send({
+              from: address,
+              value: a,
+            })
+            .then((e) => {
+              getplayerReqs(address, s, num, trans);
+            })
+            .catch((e) => console.log(e));
+        })
       } else {
         Notification.info({ content: "抽卡中, 请耐心等待", duration: 20 });
         contracts.NewPlayInfoContract.methods

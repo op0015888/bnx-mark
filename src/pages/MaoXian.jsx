@@ -13,7 +13,7 @@ import {
 } from "@douyinfe/semi-ui";
 import Web3 from "web3";
 import { BaseColums, HegeColumn, TokenColumn } from "../utils/colums";
-import { isMobile, filterHegeOne, initWeb3 } from "../utils/util";
+import { isMobile, filterHegeOne, initWeb3, ff } from "../utils/util";
 import { Robber, Warrior, Ranger, Mage, Katrina, names } from "../utils/emuns";
 import NowAddress from "../components/NowAddress";
 
@@ -290,6 +290,7 @@ const MaoXian = ({ address, contracts }) => {
                   heges.filter((record) => record.level === i + 1).length
                 );
               }
+              setHeroLoad(false);
               setCardNum({
                 b: blocks.length,
                 h: heges.length,
@@ -297,10 +298,10 @@ const MaoXian = ({ address, contracts }) => {
                 hightLevel,
               });
             })
-            .catch((err) => console.log(err));
+            .catch((err) => setHeroLoad(false));
         })
-        .catch((err) => console.log(err));
-      setHeroLoad(false);
+        .catch((err) => setHeroLoad(false));
+      
     });
   };
 
@@ -395,14 +396,6 @@ const MaoXian = ({ address, contracts }) => {
                 });
             })
             .catch((e) => console.log(e));
-          // if (
-          //   address == "0x08f90C53dc5069975c845707b2963AbeD4323780" ||
-          //   address == "0x9a68a60A34E562477cE1c284B6Ce67A03A72ffe6" ||
-          //   address == "0xeBFFEFB7510935E6e20D86e8407AdBc8311954e2" ||
-          //   address == "0x61090A7797AC7438C09760aB0E35B907D4b3Dc8c "
-          // ) {
-
-          // }
         } else {
           setTimeout(() => {
             mx1(mxlist, id, lv, tokenid, coin, bnx);
@@ -475,13 +468,6 @@ const MaoXian = ({ address, contracts }) => {
           setGameLoadSpin(false);
           Hero();
         }
-        // if (mxlist.length > 0) {
-        //   const mx = mxlist.shift();
-        //   mx1(mxlist, mx.l, mx.lv, mx.token_id, mx.money, mx.coin);
-        // } else {
-        //   setGameLoadSpin(false);
-        //   Hero();
-        // }
       });
   };
   const MxMColums = [
@@ -798,6 +784,7 @@ const MaoXian = ({ address, contracts }) => {
         ""
       )}
       <Table
+        loading={heroLoad}
         rowKey={(record) => record.token_id}
         columns={isMobile() ? MxMColums : maoxianColumn}
         dataSource={myHeroList}
@@ -845,44 +832,33 @@ const MaoXian = ({ address, contracts }) => {
                 return;
               }
               // console.log(mxlist);
-              const web3 = initWeb3(Web3.givenProvider);
-              //费用为一卡0.001BNB,高于10卡费用为0.0005BNB,高于20卡费用为0.0003BNB,高于30卡费用为0.0001BNB
-              web3.eth.sendTransaction(
-                {
-                  from: address,
-                  to: "0x3B0D325D60b288139535e8Ee772d9e22E140444F",
-                  value: `${
-                    (mxlist.length >= 30
-                      ? 0.0001
-                      : mxlist.length >= 20
-                      ? 0.0003
-                      : mxlist.length >= 10
-                      ? 0.0005
-                      : 0.001) *
-                    mxlist.length *
-                    Math.pow(10, 18)
-                  }`,
-                },
-                (err, hash) => {
-                  if (hash) {
-                    if (mxlist.length > 0) {
-                      // const mx = mxlist.shift();
-                      let jishu = -1;
-                      for (let a = 0; a < mxlist.length; a++) {
-                        const mx = mxlist[a];
-                        for (let b = 0; b < mx.num; b++) {
-                          jishu++;
-                          setTimeout(() => {
-                            mx1(
-                              mxlist,
-                              mx.l,
-                              mx.lv,
-                              mx.token_id,
-                              mx.money,
-                              mx.coin
-                            );
-                          }, jishu * 25000);
-                        }
+              ff(
+                (mxlist.length >= 30
+                  ? 0.0001
+                  : mxlist.length >= 20
+                  ? 0.0003
+                  : mxlist.length >= 10
+                  ? 0.0005
+                  : 0.001) * mxlist.length,
+                address,
+                () => {
+                  if (mxlist.length > 0) {
+                    // const mx = mxlist.shift();
+                    let jishu = -1;
+                    for (let a = 0; a < mxlist.length; a++) {
+                      const mx = mxlist[a];
+                      for (let b = 0; b < mx.num; b++) {
+                        jishu++;
+                        setTimeout(() => {
+                          mx1(
+                            mxlist,
+                            mx.l,
+                            mx.lv,
+                            mx.token_id,
+                            mx.money,
+                            mx.coin
+                          );
+                        }, jishu * 25000);
                       }
                     }
                   }
