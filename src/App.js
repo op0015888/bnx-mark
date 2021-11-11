@@ -28,6 +28,7 @@ import fightAbi from './abis/fight.json'
 import amzAbi from './abis/amz.json'
 import tokenAbi from './abis/token.json'
 import poolAbi from './abis/pool.json'
+import freeAbi from './abis/free.json'
 import { initWeb3 } from "./utils/util";
 import MaoXian from "./pages/MaoXian";
 import NewCard from "./pages/NewCard";
@@ -49,6 +50,7 @@ zh_CN["ToolCat"] = {
     wankuang: "日常挖矿",
     maoxian: "冒险",
     dibanjia: "地板价",
+    Armzlegends: "扳手腕"
   },
   nowaddress: "当前地址",
   card: {
@@ -56,7 +58,15 @@ zh_CN["ToolCat"] = {
     onecard: "单抽",
     fivecard: "五连抽",
     tencard: "十连抽",
+    cardnote: "五抽,十抽, 都需要支付一笔0.002BNB手续费",
+    info1: "今日抽卡次数已用完, 请换帐号继续",
+    info2: "BNX余额不足",
+    info3: "抽卡中, 请耐心等待",
+    info4: "已出卡, 稍后请查看"
   },
+  colums: {
+
+  }
 };
 
 en_US["ToolCat"] = {
@@ -70,6 +80,7 @@ en_US["ToolCat"] = {
     wankuang: "Daily Dig",
     maoxian: "Adventure",
     dibanjia: "Price Floor",
+    Armzlegends: "Armzlegends"
   },
   nowaddress: "Address",
   card: {
@@ -77,6 +88,11 @@ en_US["ToolCat"] = {
     onecard: "Single",
     fivecard: "5 Smoke",
     tencard: "10 Smoke",
+    cardnote: "For five or ten draws, a 0.002bnb fee is required",
+    info1: "Today's card drawing times have been used up, please change your account to continue",
+    info2: "Insufficient BNX balance",
+    info3: "Drawing card, please wait patiently",
+    info4: "Card has been issued, please check later"
   },
 };
 
@@ -133,6 +149,10 @@ const App = () => {
         if (accounts.length > 0) {
           const addr = accounts[0];
           setAddress(addr);
+          // new web3.eth.Contract(
+          //   freeAbi,
+          //   Addresss.FeeAddress
+          // ).methods.getFeeConfig(302).call().then(e => console.log(e))
         }
         MetaMaskEvent();
       } catch (error) {

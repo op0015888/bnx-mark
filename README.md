@@ -66,3 +66,12 @@ token amz pool
         console.log(e)
       }))
     }
+
+
+    https://game.binaryx.pro//v1/equipment/user?CategoryId=&SubCategoryId=&GoldAddress=0x3B0D325D60b288139535e8Ee772d9e22E140444F&Page=1&Limit=36&lang=zh-cn&sign=80821cc8ed9d7fd17bcd2f565faa67be
+
+// 装备列表
+    https://game.binaryx.pro//v1/equipment/categorylist?GoldAddress=0x3B0D325D60b288139535e8Ee772d9e22E140444F&lang=zh-cn&sign=276bf144d035ba5f5ed0f52e06dfb9a4
+
+    // 我的装备
+    https://game.binaryx.pro//v1/equipment/user?CategoryId=&SubCategoryId=&GoldAddress=0x3B0D325D60b288139535e8Ee772d9e22E140444F&Page=1&Limit=36&lang=zh-cn&sign=80821cc8ed9d7fd17bcd2f565faa67be

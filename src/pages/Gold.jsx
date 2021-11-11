@@ -9,6 +9,7 @@ import {
   Dropdown,
   Notification,
   Typography,
+  Input,
 } from "@douyinfe/semi-ui";
 import { GoldColums, GoldMColums } from "../utils/colums";
 import { ff, initWeb3, isMobile } from "../utils/util";
@@ -50,12 +51,13 @@ const Gold = ({ address, contracts }) => {
   const [work, setWord] = useState(false); // 收菜, 退出工作
   const [filterGold, setFilterGold] = useState(1000);
   const [selectedRowKeys, setselectedRowKeys] = useState([]);
+  const [copyAddress, setCopyAddress] = useState(address)
 
   useEffect(() => {
     setMyWorkCardSelectedList([]);
     setselectedRowKeys([]);
     getWordCards();
-  }, [address]);
+  }, [copyAddress]);
 
   // 工作中的卡
   const getWordCards = () => {
@@ -80,16 +82,15 @@ const Gold = ({ address, contracts }) => {
     setGoldTotal(0);
     setselectedRowKeys([]);
     setMyWorkCardSelectedList([]);
-
     const allFetchPromises = types.map((item) => {
       return fetch(
-        `https://game.binaryx.pro/info/getWorks2?address=${address}&work_type=${item}&page=1&page_size=2000&direction=asc`
+        `https://game.binaryx.pro/info/getWorks2?address=${copyAddress || address}&work_type=${item}&page=1&page_size=3000&direction=asc`
       )
         .then((res) => {
           return res.json();
         })
         .then((res) => {
-          if(!res.data.result) return []
+          if (!res.data.result) return [];
           const list = res.data.result.items;
           let nlist = [];
           if (list) {
@@ -100,130 +101,136 @@ const Gold = ({ address, contracts }) => {
               };
             });
           }
-          return nlist
-        }).catch(e => console.log(e));
+          return nlist;
+        })
+        .catch((e) => console.log(e));
     });
     Promise.all(allFetchPromises).then((res) => {
-      let list = res.filter(item => item != undefined).reduce((pre, item) => {
-        return [...pre, ...item];
-      }, []);
-      list = list.map(async (item) => {
-        const work = await (item.name === "兼职"
-          ? contracts.MiningContract
-          : contracts.NewMiningContract
-        ).methods
-          .getPlayerWork(item.token_id)
-          .call()
-          .catch((err) => console.log(err));
-        const info = await contracts.NewPlayInfoContract.methods
-          .getPlayerInfoBySet(item.token_id)
-          .call()
-          .catch((err) => console.log(err));
-        const endtime = await web3.eth.getBlockNumber();
-        let typeContract;
-        switch (item.name) {
-          case "兼职":
-            typeContract = contracts.LgongContract;
-            break;
-          case "伐木":
-            typeContract = contracts.BlacksmithContract;
-            break;
-          case "酿酒":
-            typeContract = contracts.HunterContract;
-            break;
-          case "卷轴":
-            typeContract = contracts.BookmangerContract;
-            break;
-          case "打猎":
-            typeContract = contracts.RangeworkContract;
-            break;
-          default:
-            typeContract = contracts.LgongContract;
-            break;
-        }
-        const gold = await typeContract.methods
-          .getIncome(info[0], work.startTime, endtime + "")
-          .call()
-          .catch((err) => console.log(err));
-        //   console.log(gold)
-        return {
-          career_address: info[1],
-          strength: Number(info[0][0]),
-          agility: Number(info[0][1]),
-          physique: Number(info[0][2]),
-          volition: Number(info[0][3]),
-          brains: Number(info[0][4]),
-          charm: Number(info[0][5]),
-          level: Number(info[0][6]),
-          total:
-            Number(info[0][0]) +
-            Number(info[0][1]) +
-            Number(info[0][2]) +
-            Number(info[0][3]) +
-            Number(info[0][4]) +
-            Number(info[0][5]),
-          token_id: item.token_id,
-          workname: item.name,
-          gold: Number(gold / Math.pow(10, 18)).toFixed(2),
-        };
-      });
-      Promise.all(list).then((res) => {
-        setGongZuoList(res);
-        const total = res.reduce((pre, item) => {
-          return Number(pre) + Number(item.gold);
-        }, 0);
-        const hgtotal = res.reduce((pre, item) => {
-          let hege = false;
-          switch (item.career_address) {
-            case Robber:
-              hege = filterHegeOne(item, Robber, "agility", "strength");
+        let list = res
+          .filter((item) => item != undefined)
+          .reduce((pre, item) => {
+            return [...pre, ...item];
+          }, []);
+        list = list.map(async (item) => {
+          const work = await (item.name === "兼职"
+            ? contracts.MiningContract
+            : contracts.NewMiningContract
+          ).methods
+            .getPlayerWork(item.token_id)
+            .call()
+            .catch((err) => console.log(err));
+          const info = await contracts.NewPlayInfoContract.methods
+            .getPlayerInfoBySet(item.token_id)
+            .call()
+            .catch((err) => console.log(err));
+          const endtime = await web3.eth.getBlockNumber();
+          let typeContract;
+          switch (item.name) {
+            case "兼职":
+              typeContract = contracts.LgongContract;
               break;
-            case Ranger:
-              hege = filterHegeOne(item, Ranger, "strength", "agility");
+            case "伐木":
+              typeContract = contracts.BlacksmithContract;
               break;
-            case Warrior:
-              hege = filterHegeOne(item, Warrior, "strength", "physique");
+            case "酿酒":
+              typeContract = contracts.HunterContract;
               break;
-            case Katrina:
-              hege = filterHegeOne(item, Katrina, "strength", "physique");
+            case "卷轴":
+              typeContract = contracts.BookmangerContract;
               break;
-            case Mage:
-              hege = filterHegeOne(item, Mage, "brains", "charm");
+            case "打猎":
+              typeContract = contracts.RangeworkContract;
+              break;
+            default:
+              typeContract = contracts.LgongContract;
               break;
           }
-          if (hege && item.level >= 2) {
-            let value = 0;
-            switch (item.career_address) {
-              case Robber:
-                value = item.agility;
-                break;
-              case Ranger:
-                value = item.strength;
-                break;
-              case Warrior:
-                value = item.strength;
-                break;
-              case Katrina:
-                value = item.strength;
-                break;
-              case Mage:
-                value = item.brains;
-                break;
-            }
-            const mainValue =
-              Number(prices[value]) * Number(multiples[item.level]);
-            return pre + mainValue;
-          }
-          if (!hege && item.level > 1) {
-            return pre + 288 * Number(multiples[item.level]);
-          }
-          return pre + 288;
-        }, 0);
-        setBudgetGoldTotal(hgtotal);
-        setGoldTotal(total);
-        setWorkLoad(false);
-      }).catch(e => setWorkLoad(false));
-    }).catch(e => setWorkLoad(false));
+          const gold = await typeContract.methods
+            .getIncome(info[0], work.startTime, endtime + "")
+            .call()
+            .catch((err) => console.log(err));
+          //   console.log(gold)
+          return {
+            career_address: info[1],
+            strength: Number(info[0][0]),
+            agility: Number(info[0][1]),
+            physique: Number(info[0][2]),
+            volition: Number(info[0][3]),
+            brains: Number(info[0][4]),
+            charm: Number(info[0][5]),
+            level: Number(info[0][6]),
+            total:
+              Number(info[0][0]) +
+              Number(info[0][1]) +
+              Number(info[0][2]) +
+              Number(info[0][3]) +
+              Number(info[0][4]) +
+              Number(info[0][5]),
+            token_id: item.token_id,
+            workname: item.name,
+            gold: Number(gold / Math.pow(10, 18)).toFixed(2),
+          };
+        });
+        Promise.all(list)
+          .then((res) => {
+            setGongZuoList(res);
+            const total = res.reduce((pre, item) => {
+              return Number(pre) + Number(item.gold);
+            }, 0);
+            const hgtotal = res.reduce((pre, item) => {
+              let hege = false;
+              switch (item.career_address) {
+                case Robber:
+                  hege = filterHegeOne(item, Robber, "agility", "strength");
+                  break;
+                case Ranger:
+                  hege = filterHegeOne(item, Ranger, "strength", "agility");
+                  break;
+                case Warrior:
+                  hege = filterHegeOne(item, Warrior, "strength", "physique");
+                  break;
+                case Katrina:
+                  hege = filterHegeOne(item, Katrina, "strength", "physique");
+                  break;
+                case Mage:
+                  hege = filterHegeOne(item, Mage, "brains", "charm");
+                  break;
+              }
+              if (hege && item.level >= 2) {
+                let value = 0;
+                switch (item.career_address) {
+                  case Robber:
+                    value = item.agility;
+                    break;
+                  case Ranger:
+                    value = item.strength;
+                    break;
+                  case Warrior:
+                    value = item.strength;
+                    break;
+                  case Katrina:
+                    value = item.strength;
+                    break;
+                  case Mage:
+                    value = item.brains;
+                    break;
+                }
+                const mainValue =
+                  Number(prices[value]) * Number(multiples[item.level]);
+                return pre + mainValue;
+              }
+              if (!hege && item.level > 1) {
+                return pre + 288 * Number(multiples[item.level]);
+              }
+              return pre + 288;
+            }, 0);
+            setBudgetGoldTotal(hgtotal);
+            setGoldTotal(total);
+            setWorkLoad(false);
+          })
+          .catch((e) => setWorkLoad(false));
+      })
+      .catch((e) => setWorkLoad(false));
   };
 
   const getGold = (all, type = 0) => {
@@ -238,7 +245,7 @@ const Gold = ({ address, contracts }) => {
           Notification.error({ content: "你没有黑奴可收" });
           return;
         }
-        ff(0.002, address, () => {
+        ff(0.002 * Math.ceil(a.length / 10), address, () => {
           Notification.info({
             content: "正在获取收益中, 请稍后",
             duration: 10,
@@ -250,14 +257,14 @@ const Gold = ({ address, contracts }) => {
               .then(() => getWordCards())
               .catch((err) => console.log(err));
           });
-        })
+        });
       } else if (type === 2) {
         const x = gongzuoList.filter((item) => item.workname !== "兼职");
         if (x.length === 0) {
           Notification.error({ content: "你没有合格可收" });
           return;
         }
-        ff(0.002, address, () => {
+        ff(0.002 * Math.ceil(x.length / 10), address, () => {
           Notification.info({
             content: "正在获取收益中, 请稍后",
             duration: 10,
@@ -269,9 +276,9 @@ const Gold = ({ address, contracts }) => {
               .then(() => getWordCards())
               .catch((err) => console.log(err));
           });
-        })
+        });
       } else {
-        ff(0.002, address, () => {
+        ff(0.002 * Math.ceil((all ? gongzuoList : myWorkCardSelectedList).length / 10), address, () => {
           Notification.info({
             content: "正在获取收益中, 请稍后",
             duration: 10,
@@ -293,7 +300,7 @@ const Gold = ({ address, contracts }) => {
               }
             }
           );
-        })
+        });
       }
     };
   };
@@ -311,7 +318,7 @@ const Gold = ({ address, contracts }) => {
         Notification.error({ content: `你没有黑奴满${num}可收` });
         return;
       }
-      ff(0.002, address, () => {
+      ff(0.002 * Math.ceil(a.length / 10), address, () => {
         Notification.info({
           content: "正在获取收益中, 请稍后",
           duration: 10,
@@ -323,7 +330,7 @@ const Gold = ({ address, contracts }) => {
             .then(() => getWordCards())
             .catch((err) => console.log(err));
         });
-      })
+      });
     };
   };
 
@@ -347,8 +354,8 @@ const Gold = ({ address, contracts }) => {
       Notification.error({ content: `你没有金币满${filterGold}的卡可收` });
       return;
     }
-   
-    ff(0.002, address, () => {
+
+    ff(0.002 * Math.ceil(g.length / 10), address, () => {
       Notification.info({ content: "正在获取收益中, 请稍后", duration: 10 });
       g.forEach((item, index) => {
         if (item.workname === "兼职") {
@@ -365,7 +372,7 @@ const Gold = ({ address, contracts }) => {
             .catch((err) => console.log(err));
         }
       });
-    })
+    });
   };
 
   const quitWork = (all, num = 0) => {
@@ -383,7 +390,7 @@ const Gold = ({ address, contracts }) => {
         return;
       }
       Notification.info({ content: "正在炒老板鱿鱼中, 请稍后", duration: 10 });
-      ff(0.002, address, () => {
+      ff(0.002 * Math.ceil(list.length / 10), address, () => {
         list.forEach((item, index) => {
           if (item.workname === "兼职") {
             contracts.MiningContract.methods
@@ -409,6 +416,17 @@ const Gold = ({ address, contracts }) => {
         日常挖矿
       </Typography.Title>
       <NowAddress address={address} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 5,
+        }}
+      >
+        <a href="https://game.binaryx.pro" target="_blank">
+          BinaryX官网
+        </a>
+      </div>
       <div
         style={{
           display: "flex",
@@ -526,8 +544,34 @@ const Gold = ({ address, contracts }) => {
           <Tag>挖矿总收益: {goldTotal.toFixed(2)}</Tag>
         </Space>
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 20,
+          flexWrap: "wrap",
+          alignItems: 'center'
+        }}
+      >
+        <Input
+          placeholder="输入其他地址查询收益(仅限于查询)"
+          style={{ width: 300 }}
+          value={copyAddress}
+          onChange={e => {
+            setCopyAddress(e)
+            if(e == '') setCopyAddress(address)
+          }}
+        />
+        <Button type="primary" style={{ margin: 3 }} onClick={() => {
+          setCopyAddress(address)
+          getWordCards()
+        }}>
+          重置
+        </Button>
+      </div>
+
       <p style={{ width: "100%", textAlign: "center" }}>
-        每次点击相关操作按钮前, 都需要支付0.002BNB手续费
+        每次点击相关操作按钮前, 都需要支付每10卡0.002BNB手续费
       </p>
       {myWorkCardSelectedList.length > 0 ? (
         <div

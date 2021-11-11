@@ -41,51 +41,88 @@ const BanShouWan = ({ address, contracts }) => {
     setselectedRowKeys([]);
     setMyHeroList([]);
     setMyCardSelectedList([]);
-    setWorkLoad(true)
-    const nums = await contracts.amzContract.methods.balanceOf(address).call({
-      from: address,
-    });
-    let promises = [];
-    for (let index = 0; index < nums; index++) {
-      promises.push(
-        contracts.amzContract.methods
-          .tokenOfOwnerByIndex(address, index)
+    setWorkLoad(true);
+    try {
+      const nums = await contracts.amzContract.methods
+        .balanceOf(address)
+        .call({
+          from: address,
+        })
+        .catch((err) => setWorkLoad(false));
+      if (nums == 0) {
+        setWorkLoad(false);
+        return;
+      }
+      let promises = [];
+      for (let index = 0; index < nums; index++) {
+        promises.push(
+          contracts.amzContract.methods
+            .tokenOfOwnerByIndex(
+              address,
+              index
+            )
+            .call({
+              from: address,
+            })
+            .catch((err) => console.log(err))
+        );
+      }
+      const ids = await Promise.all(promises);
+      promises = [];
+      ids.forEach((id) => {
+        promises.push(
+          contracts.amzContract.methods
+            .getArmz(id)
+            .call({
+              from: address,
+            })
+            .catch((err) => console.log(err))
+        );
+      });
+      let infos = await Promise.all(promises);
+
+      const alls = infos.map(async (item) => {
+        const fights = await contracts.fightContract.methods
+          .getTimeFights(item.id)
           .call({
             from: address,
           })
-          .catch((err) => console.log(err))
-      );
+          .catch((err) => console.log(err));
+        return {
+          info: item,
+          fights: fights,
+        };
+      });
+      infos = await Promise.all(alls);
+      // console.log(infos)
+      setMyHeroList(infos.sort((a, b) => tureMana(a) - tureMana(b)));
+      setWorkLoad(false);
+    } catch (error) {
+      setWorkLoad(false);
     }
-    const ids = await Promise.all(promises);
-    promises = [];
-    ids.forEach((id) => {
-      promises.push(
-        contracts.amzContract.methods
-          .getArmz(id)
-          .call({
-            from: address,
-          })
-          .catch((err) => console.log(err))
-      );
-    });
-    const infos = await Promise.all(promises);
-    setMyHeroList(infos.sort((a, b) => tureMana(a) - tureMana(b)));
-    setWorkLoad(false)
   };
 
   const tureMana = (record) => {
-    let s = parseInt(record.mana),
-      e = parseInt(record.maxMana);
-    if (s < e) {
-      let a = parseInt(
-        (Math.floor(Date.now() / 1000) - record.lastFight) /
-          3600 /
-          record.hourMana
-      );
-      s += a;
-      if (s > record.maxMana) s = record.maxMana;
+    // let s = parseInt(record.mana),
+    //   e = parseInt(record.maxMana);
+    // if (s < e) {
+    //   let a = parseInt((Math.floor(Date.now() / 1000) - record.lastFight) / 3600 / record.hourMana);
+    //   console.log(a)
+    //   s += a;
+    //   if (s > record.maxMana) s = record.maxMana;
+    // }
+    // return parseInt(s);
+    // console.log(record)
+    for (
+      var s = parseInt(record.info.maxMana), e = 0;
+      e < record.fights.length;
+      e++
+    ) {
+      0 !== record.fights[e] &&
+        Math.floor(Date.now() / 1000) - record.fights[e] < 86400 &&
+        (s -= 1);
     }
-    return parseInt(s);
+    return s;
   };
   return (
     <MyHeroContainer>
@@ -93,6 +130,17 @@ const BanShouWan = ({ address, contracts }) => {
         扳手腕
       </Typography.Title>
       <NowAddress address={address} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 5,
+        }}
+      >
+        <a href="https://app.armzlegends.com/fight" target="_blank">
+          Armzlegends官网
+        </a>
+      </div>
       <div
         style={{
           display: "flex",
@@ -111,7 +159,7 @@ const BanShouWan = ({ address, contracts }) => {
             }
             if (mxlist.length > 0) {
               ff(
-               (mxlist.length >= 30
+                (mxlist.length >= 30
                   ? 0.0006
                   : mxlist.length >= 20
                   ? 0.001
@@ -121,13 +169,12 @@ const BanShouWan = ({ address, contracts }) => {
                 address,
                 () => {
                   mxlist.forEach((item) => {
-                    console.log(tureMana(item))
                     for (let index = 0; index < tureMana(item); index++) {
                       contracts.fightContract.methods
-                        .fight(item.id, item.boss || 0)
+                        .fight(item.info.id, item.info.boss || 0)
                         .send({
                           from: address,
-                          gas: 500000
+                          gas: 500000,
                         })
                         .then((r) => Hero())
                         .catch((e) => console.log(e));
@@ -144,17 +191,23 @@ const BanShouWan = ({ address, contracts }) => {
         </Button>
         <Button
           type="primary"
-          disabled={myHeroList.filter((item) => tureMana(item) === item.maxMana).length === 0}
+          disabled={
+            myHeroList.filter((item) => {
+              return tureMana(item) == item.info.maxMana;
+            }).length === 0
+          }
           style={{ margin: 3 }}
           onClick={() => {
             if (!address || !contracts) {
               Notification.error({ content: "请刷新网页" });
               return;
             }
-            const mt = myHeroList.filter((item) => tureMana(item) === item.maxMana)
+            const mt = myHeroList.filter((item) => {
+              return tureMana(item) == item.info.maxMana;
+            });
             if (mt.length > 0) {
               ff(
-               (mt.length >= 30
+                (mt.length >= 30
                   ? 0.0006
                   : mt.length >= 20
                   ? 0.001
@@ -167,10 +220,10 @@ const BanShouWan = ({ address, contracts }) => {
                     // console.log(tureMana(item))
                     for (let index = 0; index < tureMana(item); index++) {
                       contracts.fightContract.methods
-                        .fight(item.id, item.boss || 0)
+                        .fight(item.info.id, item.info.boss || 0)
                         .send({
                           from: address,
-                          gas: 500000
+                          gas: 500000,
                         })
                         .then((r) => Hero())
                         .catch((e) => console.log(e));
@@ -207,11 +260,17 @@ const BanShouWan = ({ address, contracts }) => {
           <Tag style={{ textAlign: "center" }}>手腕 {myHeroList.length}</Tag>
           <Tag color="yellow" style={{ textAlign: "center" }}>
             剩余满体力手腕{" "}
-            {myHeroList.filter((item) => tureMana(item) === item.maxMana).length}
+            {
+              myHeroList.filter((item) => tureMana(item) == item.info.maxMana)
+                .length
+            }
           </Tag>
           <Tag color="green" style={{ textAlign: "center" }}>
             总手腕次数{" "}
-            {myHeroList.reduce((pre, item) => pre + Number(item.maxMana), 0)}
+            {myHeroList.reduce(
+              (pre, item) => pre + Number(item.info.maxMana),
+              0
+            )}
           </Tag>
           <Tag color="red" style={{ textAlign: "center" }}>
             剩余手腕次数{" "}
@@ -239,39 +298,53 @@ const BanShouWan = ({ address, contracts }) => {
       )}
       <Table
         loading={workLoad}
-        rowKey={(record) => record.id}
+        rowKey={(record) => record.info.id}
         columns={
           isMobile()
             ? [
                 {
                   title: "手腕",
                   dataIndex: "image",
-                  render: (text) => {
-                    const img = imgs.filter(img => {
-                      return img.indexOf(text) != -1
-                    })
-                    return <img src={`https://app.armzlegends.com/img/${img[0] || 'MISC_EARN.32a6591b.png'}`} style={{width: 30, height: 30}}/>
-                  }
+                  render: (text, record) => {
+                    const img = imgs.filter((img) => {
+                      return img.indexOf(record.info.image) != -1;
+                    });
+                    return (
+                      <img
+                        src={`https://app.armzlegends.com/img/${
+                          img[0] || "MISC_EARN.32a6591b.png"
+                        }`}
+                        style={{ width: 30, height: 30 }}
+                      />
+                    );
+                  },
                 },
                 {
                   title: "体力",
                   dataIndex: "mana",
                   sorter: (a, b) => tureMana(a) - tureMana(b),
                   render: (text, record) => {
-                    return (
-                      <span>
-                        {tureMana(record)}
-                      </span>
-                    );
+                    return <span>{tureMana(record)}</span>;
                   },
                 },
                 {
                   title: "倒计时",
                   dataIndex: "djs",
                   render: (text, record) => {
-                    const time = ((Math.floor(Date.now() / 1000) - record.lastFight)/ 3600)
-                    return <span>{Math.ceil(record.hourMana - time).toFixed()}</span>
-                  }
+                    const time =
+                      (Math.floor(Date.now() / 1000) -
+                        (record.fights[record.fights.length - 1] ||
+                          record.info.lastFight)) /
+                      3600;
+                    return (
+                      <span>
+                        {(record.info.hourMana - time < 0
+                          ? 0
+                          : record.info.hourMana - time
+                        ).toFixed(2)}
+                      </span>
+                    );
+                  },
                 },
                 {
                   title: "BOSS",
@@ -281,7 +354,7 @@ const BanShouWan = ({ address, contracts }) => {
                         size="small"
                         defaultValue={0}
                         onChange={(value) => {
-                          record["boss"] = value;
+                          record.info["boss"] = value;
                         }}
                       >
                         <Option value={0} key={0}>
@@ -302,30 +375,42 @@ const BanShouWan = ({ address, contracts }) => {
                 {
                   title: "ID",
                   dataIndex: "id",
-                  sorter: (a, b) => a.id - b.id,
+                  sorter: (a, b) => a.info.id - b.info.id,
+                  render: (text, record) => {
+                    return <span>{record.info.id}</span>;
+                  },
                 },
                 {
                   title: "手腕",
                   dataIndex: "image",
-                  render: (text) => {
-                    const img = imgs.filter(img => {
-                      return img.indexOf(text) != -1
-                    })
-                    return <img src={`https://app.armzlegends.com/img/${img[0] || 'MISC_EARN.32a6591b.png'}`} style={{width: 40, height: 40}}/>
-                  }
+                  render: (text, record) => {
+                    const img = imgs.filter((img) => {
+                      return img.indexOf(record.info.image) != -1;
+                    });
+                    return (
+                      <img
+                        src={`https://app.armzlegends.com/img/${
+                          img[0] || "MISC_EARN.32a6591b.png"
+                        }`}
+                        style={{ width: 40, height: 40 }}
+                      />
+                    );
+                  },
                 },
                 {
                   title: "体力",
                   dataIndex: "mana",
                   sorter: (a, b) => tureMana(a) - tureMana(b),
                   render: (text, record) => {
-                    const mana = tureMana(record)
+                    const mana = tureMana(record);
                     return (
-                      <span style={{display: 'flex', alignItems: 'center'}}>
-                        {mana}/{record.maxMana}
-                        {
-                          mana === record.maxMana ? <Tag color='yellow'>满</Tag> : ""
-                        }
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        {mana}/{record.info.maxMana}
+                        {mana === record.info.maxMana ? (
+                          <Tag color="yellow">满</Tag>
+                        ) : (
+                          ""
+                        )}
                       </span>
                     );
                   },
@@ -333,41 +418,73 @@ const BanShouWan = ({ address, contracts }) => {
                 {
                   title: "恢复体力(小时)",
                   dataIndex: "hourMana",
-                  sorter: (a, b) => a.hourMana - b.hourMana,
+                  sorter: (a, b) => a.info.hourMana - b.info.hourMana,
+                  render: (text, record) => {
+                    return <span>{record.info.hourMana}</span>;
+                  },
                 },
                 {
                   title: "倒计时(小时)",
                   dataIndex: "djs",
-                  sorter: (a, b) => (Math.floor(Date.now() / 1000) - a.lastFight) - (Math.floor(Date.now() / 1000) - b.lastFight),
+                  sorter: (a, b) =>
+                    Math.floor(Date.now() / 1000) -
+                    (a.fights[a.fights.length - 1] || a.info.lastFight) -
+                    (Math.floor(Date.now() / 1000) -
+                      (b.fights[b.fights.length - 1] || b.info.lastFight)),
                   render: (text, record) => {
-                    const time = ((Math.floor(Date.now() / 1000) - record.lastFight)/ 3600)
-                    return <span>{(record.hourMana - time).toFixed(2)}</span>
-                  }
+                    const time =
+                      (Math.floor(Date.now() / 1000) -
+                        (record.fights[record.fights.length - 1] ||
+                          record.info.lastFight)) /
+                      3600;
+                    return (
+                      <span>
+                        {(record.info.hourMana - time < 0
+                          ? 0
+                          : record.info.hourMana - time
+                        ).toFixed(2)}
+                      </span>
+                    );
+                  },
                 },
                 {
                   title: "最后时间",
                   dataIndex: "lastFight",
-                  sorter: (a, b) => a.lastFight - b.lastFight,
-                  render: (text) => {
+                  sorter: (a, b) => a.info.lastFight - b.info.lastFight,
+                  render: (text, record) => {
                     return (
-                      <span>{new Date(text * 1000).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(
+                          (record.fights[record.fights.length - 1] ||
+                            record.info.lastFight) * 1000
+                        ).toLocaleDateString()}
+                      </span>
                     );
                   },
                 },
                 {
                   title: "rarity",
                   dataIndex: "rarity",
-                  sorter: (a, b) => a.rarity - b.rarity,
+                  sorter: (a, b) => a.info.rarity - b.info.rarity,
+                  render: (text, record) => {
+                    return <span>{record.info.rarity}</span>;
+                  },
                 },
                 {
                   title: "nbBoost",
                   dataIndex: "nbBoost",
-                  sorter: (a, b) => a.nbBoost - b.nbBoost,
+                  sorter: (a, b) => a.info.nbBoost - b.info.nbBoost,
+                  render: (text, record) => {
+                    return <span>{record.info.nbBoost}</span>;
+                  },
                 },
                 {
                   title: "boostWinrate",
                   dataIndex: "boostWinrate",
-                  sorter: (a, b) => a.boostWinrate - b.boostWinrate,
+                  sorter: (a, b) => a.info.boostWinrate - b.info.boostWinrate,
+                  render: (text, record) => {
+                    return <span>{record.info.boostWinrate}</span>;
+                  },
                 },
                 {
                   title: "选择BOSS",
@@ -377,7 +494,7 @@ const BanShouWan = ({ address, contracts }) => {
                         size="small"
                         defaultValue={0}
                         onChange={(value) => {
-                          record["boss"] = value;
+                          record.info["boss"] = value;
                         }}
                       >
                         <Option value={0} key={0}>

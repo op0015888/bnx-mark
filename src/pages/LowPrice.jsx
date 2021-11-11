@@ -42,7 +42,7 @@ const LowPrice = () => {
     });
     setLowPrices(lowPrices);
     setLoad(false);
-    Notification.success({content: '已刷新数据'})
+    Notification.success({ content: "已刷新数据" });
   };
 
   const filterHege = (
@@ -73,6 +73,17 @@ const LowPrice = () => {
         }}
       >
         <Typography.Title heading={2}>合格卡地板价</Typography.Title>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            margin: 5,
+          }}
+        >
+          <a href="https://market.binaryx.pro/#/oneoffsale" target="_blank">
+            BinaryX市场官网
+          </a>
+        </div>
         <Button type="primary" style={{ margin: 3 }} onClick={getLowPrices}>
           刷新
         </Button>

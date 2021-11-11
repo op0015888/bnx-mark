@@ -387,6 +387,7 @@ const MaoXian = ({ address, contracts }) => {
                         from: address,
                       })
                       .on("transactionHash", (e) => {
+                        Notification.info({content: "检查门票是否到账"})
                         mx2(mxlist, tokenid, uuid, id);
                       })
                       .catch((err) => {
@@ -422,6 +423,7 @@ const MaoXian = ({ address, contracts }) => {
       .then((res) => {
         res.data && 0 !== res.data.s
           ? setTimeout(function () {
+              Notification.info({content: "正在PK"})
               mx3(mxlist, tokenid, Uuid, DataId);
             }, 2000)
           : setTimeout(function () {
@@ -460,13 +462,16 @@ const MaoXian = ({ address, contracts }) => {
             reward_coin,
             reward_eqs,
           };
-          console.log(log);
+          // console.log(log);
           nlogs.push(log);
           setNlogs(nlogs);
+          Notification.success({content: `${winner == 2 ? "失败" : "胜利"}收益: 金币:${reward_money} 钥匙${reward_coupon} BNX${reward_coin} 装备${reward_eqs.map((item) => item.name).toString()} `})
         }
         if (nlogs.length === mxlist.reduce((pre, item) => pre + item.num, 0)) {
           setGameLoadSpin(false);
           Hero();
+          setGameModal(false)
+          Notification.success({content: "副本已完成"})
         }
       });
   };
@@ -697,6 +702,17 @@ const MaoXian = ({ address, contracts }) => {
     <MyHeroContainer>
       <Typography.Title style={{ textAlign: "center" }}>冒险</Typography.Title>
       <NowAddress address={address} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 5,
+        }}
+      >
+        <a href="https://game.binaryx.pro" target="_blank">
+          BinaryX官网
+        </a>
+      </div>
       <div
         style={{
           display: "flex",

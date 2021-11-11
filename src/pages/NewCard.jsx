@@ -3,8 +3,7 @@ import { Button, Notification, Typography, Table } from "@douyinfe/semi-ui";
 import NowAddress from "../components/NowAddress";
 import { useState } from "react";
 import { MyHeroColums, CardMColums } from "../utils/colums";
-import { ff, initWeb3, isMobile } from "../utils/util";
-import Web3 from "web3";
+import { ff, isMobile } from "../utils/util";
 
 const MyHeroContainer = styled.div`
   width: 100%;
@@ -25,14 +24,14 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
         .call();
       console.log(max);
       if (max[0] === "0" && max[1] === "0") {
-        Notification.info({ content: "今日抽卡次数已用完, 请换帐号继续" });
+        Notification.info({ content: card.info1 });
         return;
       }
       const bnx = await contracts.bnxContractNew.methods
         .balanceOf(address)
         .call();
       if ((Number(bnx) / Math.pow(10, 18)).toFixed(4) < 1) {
-        Notification.info({ content: "BNX余额不足" });
+        Notification.info({ content: card.info2 });
         return;
       }
       const n = await contracts.NewPlayInfoContract.methods
@@ -51,7 +50,7 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
       if (trans && (num === 5 || num === 10)) {
         ff(0.001, address, () => {
           Notification.info({
-            content: "抽卡中, 请耐心等待",
+            content: card.info3,
             duration: 20,
           });
           contracts.NewPlayInfoContract.methods
@@ -66,7 +65,7 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
             .catch((e) => console.log(e));
         })
       } else {
-        Notification.info({ content: "抽卡中, 请耐心等待", duration: 20 });
+        Notification.info({ content: card.info3, duration: 20 });
         contracts.NewPlayInfoContract.methods
           .newPlayerTrade(n, i, s)
           .send({
@@ -100,7 +99,7 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
   };
 
   const getTokenId = (s, num, trans) => {
-    Notification.info({ content: "已出卡, 稍后请查看" });
+    Notification.info({ content: card.info4 });
     contracts.NewPlayInfoContract.methods
       .reqsPlayerToken(s)
       .call()
@@ -152,6 +151,17 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
         style={{
           display: "flex",
           justifyContent: "center",
+          margin: 5,
+        }}
+      >
+        <a href="https://game.binaryx.pro" target="_blank">
+          BinaryX
+        </a>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
           margin: 20,
           flexWrap: "wrap",
         }}
@@ -179,7 +189,7 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
         </Button>
       </div>
       <p style={{ width: "100%", textAlign: "center" }}>
-        五抽,十抽, 都需要支付一笔0.002BNB手续费
+        {card.cardnote}
       </p>
       <Table
         rowKey={(record) => record.token_id}

@@ -8,6 +8,7 @@ import {
   IconSun,
   IconUnderline,
   IconLikeThumb,
+  IconLanguage
 } from "@douyinfe/semi-icons";
 import {
   Layout,
@@ -106,7 +107,7 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
                   <Dropdown.Menu>
                     <Link to="/shou">
                       <Dropdown.Item icon={<IconLikeThumb />}>
-                        {'扳手腕'}
+                        {menu.Armzlegends}
                       </Dropdown.Item>
                     </Link>
                   </Dropdown.Menu>
@@ -247,12 +248,12 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
                 arrowPointAtCenter
                 showArrow
                 trigger="hover"
-                content={"扳手腕"}
+                text={isMobile() ? "" : menu.Armzlegends}
               >
                 <Link to="/shou">
                   <Nav.Item
                     itemKey="shou"
-                    text={isMobile() ? "" : "扳手腕"}
+                    text={isMobile() ? "" : menu.Armzlegends}
                     icon={
                       <IconLikeThumb
                         size="large"
@@ -290,7 +291,7 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
                 }
                 style={{
                   color: "var(--semi-color-text-0)",
-                  marginRight: "82px",
+                  marginRight: "12px",
                 }}
               />
             </Popover>

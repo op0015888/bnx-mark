@@ -318,7 +318,7 @@ const MyHero = ({ address, contracts }) => {
       Notification.info({ content: "3秒后不显示钱包地址, 请刷新网页" });
       return;
     }
-    ff(0.002, address, () => {
+    ff(0.002 * Math.ceil(myCardSelectedList.length / 10), address, () => {
       Notification.info({
         content: "正在去兼职的路上, 请稍后",
         duration: 10,
@@ -348,7 +348,7 @@ const MyHero = ({ address, contracts }) => {
       Notification.error({ content: "请选择你要转移的卡" });
       return;
     }
-    ff(0.002, address, () => {
+    ff(0.002 * Math.ceil(myCardSelectedList.length / 10), address, () => {
       Notification.info({ content: "正在转移卡中, 请稍后", duration: 10 });
           myCardSelectedList.forEach((item, index) => {
             let typeContract;
@@ -389,7 +389,7 @@ const MyHero = ({ address, contracts }) => {
       content: "系统将自动分派参与符合工作的卡, 请注意, GAS过高要拒绝操作",
     });
     Notification.error({ content: "GAS过高的原因可能需要官方挖矿授权操作" });
-    ff(0.002, address, () => {
+    ff(0.002 * Math.ceil(myCardSelectedList.length / 10), address, () => {
       Notification.info({
         content: "正在去上班的路上, 请稍后",
         duration: 10,
@@ -486,6 +486,17 @@ const MyHero = ({ address, contracts }) => {
         我的英雄
       </Typography.Title>
       <NowAddress address={address} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 5,
+        }}
+      >
+        <a href="https://game.binaryx.pro" target="_blank">
+          BinaryX官网
+        </a>
+      </div>
       <div
         style={{
           display: "flex",
@@ -596,7 +607,7 @@ const MyHero = ({ address, contracts }) => {
         </Space>
       </div>
       <p style={{ width: "100%", textAlign: "center" }}>
-        每次点击相关操作按钮前, 都需要支付0.002BNB手续费
+        每次点击相关操作按钮前, 都需要支付每10卡0.002BNB手续费, 单次升级除外
       </p>
       {myCardSelectedList.length > 0 ? (
         <div
