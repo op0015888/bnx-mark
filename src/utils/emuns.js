@@ -11,6 +11,7 @@ export const gongzuo_type5 = `0x81E9aCe9511A7d56fd31940d1C49425CA3a2B8f8`; //打
 export const gongzuo_type6 = `0xC5dDbb4ac27A939D914059A023C6A35F377B67Ff`; //皇室守卫
 export const gongzuo_type7 = `0xdcC5C1e7A3ADC8b7635565183a7385026502440B`; //军团士兵
 export const gongzuo_type8 = `0x0ac4eB7978E0dA0d53824bd590354C8Bd264C4e6`; //皇室顾问
+export const gongzuo_type9 = `0x87ecC7fEd6AdD823569c210D27AD9D2C7177b16e`; //传奇
 
 export const gongzuo_type_zh = (type) => {
   switch (type) {
@@ -30,6 +31,8 @@ export const gongzuo_type_zh = (type) => {
       return "士兵";
     case gongzuo_type8:
       return "顾问";
+    case gongzuo_type9:
+      return "传奇";
     default:
       return "兼职";
   }
@@ -91,17 +94,21 @@ export const Addresss = {
   BscAddress: "0x8C851d1a123Ff703BD1f9dabe631b69902Df5f97",
   IronKeyAddress: "0x72B587C50A3899dce4B25A95b2994C417830C603",
   gameManager: "0xA100C0f774Ed525C186e6BeCDa88812427e1742d",
-  FeeAddress: '0x092092Ec06C5D06775249c689AaD880336dD5c8e',
+  FeeAddress: "0x092092Ec06C5D06775249c689AaD880336dD5c8e",
+  LegendaryAddress: "0x87ecC7fEd6AdD823569c210D27AD9D2C7177b16e",
+  GaojiAddress: "0xC5dDbb4ac27A939D914059A023C6A35F377B67Ff",
+  SixthAddress: "0xdcC5C1e7A3ADC8b7635565183a7385026502440B",
+  SeventhAddress: "0x0ac4eB7978E0dA0d53824bd590354C8Bd264C4e6",
   // 手腕
   amzAddress: "0x3d7b0001e03096d3795Fd5D984AD679467546d73",
   tokenAddress: "0xd3c9609B6CBC6eF02390F33C230590c38F9E5f9D",
   poolAddress: "0xe4dd4794C915CB99f5A12cA8058d8B45fFEa8545",
-  fightAddress: "0x65261f17743fd5fE74c69d03147A1F21F7658db6"
+  fightAddress: "0x65261f17743fd5fE74c69d03147A1F21F7658db6",
 };
 export const names = {
-    [Robber]: "盗贼",
-    [Warrior]: "战士",
-    [Mage]: "法师",
-    [Ranger]: "游侠",
-    [Katrina]: "卡特",
-  };
+  [Robber]: "盗贼",
+  [Warrior]: "战士",
+  [Mage]: "法师",
+  [Ranger]: "游侠",
+  [Katrina]: "卡特",
+};

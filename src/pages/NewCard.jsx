@@ -154,7 +154,7 @@ const NewCard = ({ card, nowaddress, address, contracts, contractss }) => {
           margin: 5,
         }}
       >
-        <a href="https://game.binaryx.pro" target="_blank">
+        <a href="https://game.binaryx.pro/#/game?type=0" target="_blank">
           BinaryX
         </a>
       </div>

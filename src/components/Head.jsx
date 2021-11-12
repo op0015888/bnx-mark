@@ -8,7 +8,7 @@ import {
   IconSun,
   IconUnderline,
   IconLikeThumb,
-  IconLanguage
+  IconInbox,
 } from "@douyinfe/semi-icons";
 import {
   Layout,
@@ -49,14 +49,19 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
     >
       <div>
         <Nav mode="horizontal" defaultSelectedKeys={["Home"]}>
-        <Nav.Header>
-                <IconSimilarity
-                  style={{ fontSize: isMobile() ? 24 :36, color: "var(--semi-color-text-0)" }}
-                />
-                {
-                  isMobile() ? "" : <Typography.Title heading={4}>{title}</Typography.Title>
-                }
-              </Nav.Header>
+          <Nav.Header>
+            <IconSimilarity
+              style={{
+                fontSize: isMobile() ? 24 : 36,
+                color: "var(--semi-color-text-0)",
+              }}
+            />
+            {isMobile() ? (
+              ""
+            ) : (
+              <Typography.Title heading={4}>{title}</Typography.Title>
+            )}
+          </Nav.Header>
           {isMobile() ? (
             <>
               <Dropdown
@@ -87,6 +92,11 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
                     <Link to="/low">
                       <Dropdown.Item icon={<IconUnderline />}>
                         {menu.dibanjia}
+                      </Dropdown.Item>
+                    </Link>
+                    <Link to="/xiang">
+                      <Dropdown.Item icon={<IconInbox />}>
+                        {"开宝箱"}
                       </Dropdown.Item>
                     </Link>
                   </Dropdown.Menu>
@@ -248,7 +258,31 @@ const Head = ({ menu, light, dark, title, Language, toogleLanguage }) => {
                 arrowPointAtCenter
                 showArrow
                 trigger="hover"
-                text={isMobile() ? "" : menu.Armzlegends}
+                content={isMobile() ? "" : "开宝箱"}
+              >
+                <Link to="/xiang">
+                  <Nav.Item
+                    itemKey="xiang"
+                    text={isMobile() ? "" : "开宝箱"}
+                    icon={
+                      <IconInbox
+                        size="large"
+                        style={{
+                          color: "var(--semi-color-text-0)",
+                        }}
+                      />
+                    }
+                    style={{
+                      color: "var(--semi-color-text-0)",
+                    }}
+                  />
+                </Link>
+              </Popover>
+              <Popover
+                arrowPointAtCenter
+                showArrow
+                trigger="hover"
+                content={isMobile() ? "" : menu.Armzlegends}
               >
                 <Link to="/shou">
                   <Nav.Item

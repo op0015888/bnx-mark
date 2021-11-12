@@ -24,11 +24,13 @@ import newsaleAbi from "./abis/newsaleAbi.json";
 import goldAbi from "./abis/gold.json";
 import bnxAbi from "./abis/bnx.json";
 import vipAbi from "./abis/vip.json";
-import fightAbi from './abis/fight.json'
-import amzAbi from './abis/amz.json'
-import tokenAbi from './abis/token.json'
-import poolAbi from './abis/pool.json'
-import freeAbi from './abis/free.json'
+import fightAbi from "./abis/fight.json";
+import amzAbi from "./abis/amz.json";
+import tokenAbi from "./abis/token.json";
+import poolAbi from "./abis/pool.json";
+import freeAbi from "./abis/free.json";
+import fivesixsveenAbi from "./abis/fivesixsveen.json";
+import legendaryAbi from "./abis/legendary.json";
 import { initWeb3 } from "./utils/util";
 import MaoXian from "./pages/MaoXian";
 import NewCard from "./pages/NewCard";
@@ -38,6 +40,7 @@ import en_US from "@douyinfe/semi-ui/lib/es/locale/source/en_US";
 import { LocaleProvider } from "@douyinfe/semi-ui";
 import cookie from "react-cookies";
 import BanShouWan from "./pages/BanShouWan";
+import BaoXiang from "./pages/BaoXiang";
 
 zh_CN["ToolCat"] = {
   AppTitle: "工具猫",
@@ -50,7 +53,7 @@ zh_CN["ToolCat"] = {
     wankuang: "日常挖矿",
     maoxian: "冒险",
     dibanjia: "地板价",
-    Armzlegends: "扳手腕"
+    Armzlegends: "扳手腕",
   },
   nowaddress: "当前地址",
   card: {
@@ -62,11 +65,9 @@ zh_CN["ToolCat"] = {
     info1: "今日抽卡次数已用完, 请换帐号继续",
     info2: "BNX余额不足",
     info3: "抽卡中, 请耐心等待",
-    info4: "已出卡, 稍后请查看"
+    info4: "已出卡, 稍后请查看",
   },
-  colums: {
-
-  }
+  colums: {},
 };
 
 en_US["ToolCat"] = {
@@ -80,7 +81,7 @@ en_US["ToolCat"] = {
     wankuang: "Daily Dig",
     maoxian: "Adventure",
     dibanjia: "Price Floor",
-    Armzlegends: "Armzlegends"
+    Armzlegends: "Armzlegends",
   },
   nowaddress: "Address",
   card: {
@@ -89,10 +90,11 @@ en_US["ToolCat"] = {
     fivecard: "5 Smoke",
     tencard: "10 Smoke",
     cardnote: "For five or ten draws, a 0.002bnb fee is required",
-    info1: "Today's card drawing times have been used up, please change your account to continue",
+    info1:
+      "Today's card drawing times have been used up, please change your account to continue",
     info2: "Insufficient BNX balance",
     info3: "Drawing card, please wait patiently",
-    info4: "Card has been issued, please check later"
+    info4: "Card has been issued, please check later",
   },
 };
 
@@ -180,7 +182,7 @@ const App = () => {
       vipAbi,
       "0xB09122F5D5db0386E38deE7C08f99c03f0484C1e"
     );
-    
+    contracts.feeContract = new web3.eth.Contract(freeAbi, Addresss.FeeAddress);
     contracts.fightContract = new web3.eth.Contract(
       fightAbi,
       Addresss.fightAddress
@@ -189,10 +191,7 @@ const App = () => {
       tokenAbi,
       Addresss.tokenAddress
     );
-    contracts.amzContract = new web3.eth.Contract(
-      amzAbi,
-      Addresss.amzAddress
-    );
+    contracts.amzContract = new web3.eth.Contract(amzAbi, Addresss.amzAddress);
     contracts.poolContract = new web3.eth.Contract(
       poolAbi,
       Addresss.poolAddress
@@ -272,6 +271,23 @@ const App = () => {
     contracts.dungeonContract = new web3.eth.Contract(
       gameAbi,
       Addresss.gameManager
+    );
+    contracts.GaojiAddressContract = new web3.eth.Contract(
+      fivesixsveenAbi,
+      Addresss.GaojiAddress
+    );
+    contracts.SeventhContract = new web3.eth.Contract(
+      fivesixsveenAbi,
+      Addresss.SeventhAddress
+    );
+    contracts.SixthContract = new web3.eth.Contract(
+      fivesixsveenAbi,
+      Addresss.SixthAddress
+    );
+    //f28f
+    contracts.LegendaryContract = new web3.eth.Contract(
+      legendaryAbi,
+      Addresss.LegendaryAddress
     );
   };
 
@@ -362,7 +378,7 @@ const App = () => {
                 />
               }
             />
-             <Route
+            <Route
               path="/shou"
               element={
                 <BanShouWan
@@ -373,8 +389,18 @@ const App = () => {
                 />
               }
             />
+            <Route
+              path="/xiang"
+              element={
+                <BaoXiang
+                  nowaddress={locale["ToolCat"].nowaddress}
+                  address={address}
+                  contracts={contracts}
+                  contractss={contractss}
+                />
+              }
+            />
           </Routes>
-          
         </Content>
         <BackTop />
       </Layout>

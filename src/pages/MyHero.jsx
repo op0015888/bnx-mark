@@ -123,7 +123,10 @@ const MyHero = ({ address, contracts }) => {
     for (let index = 0; index < warrs; index++) {
       promises.push(
         contracts.WarriorContract.methods
-          .tokenOfOwnerByIndex(address, index)
+          .tokenOfOwnerByIndex(
+            address,
+            index
+          )
           .call()
           .catch((err) => console.log(err))
       );
@@ -131,7 +134,10 @@ const MyHero = ({ address, contracts }) => {
     for (let index = 0; index < robbers; index++) {
       promises.push(
         contracts.RobberContract.methods
-          .tokenOfOwnerByIndex(address, index)
+          .tokenOfOwnerByIndex(
+            address,
+            index
+          )
           .call()
           .catch((err) => console.log(err))
       );
@@ -139,7 +145,10 @@ const MyHero = ({ address, contracts }) => {
     for (let index = 0; index < mages; index++) {
       promises.push(
         contracts.MageContract.methods
-          .tokenOfOwnerByIndex(address, index)
+          .tokenOfOwnerByIndex(
+            address,
+            index
+          )
           .call()
           .catch((err) => console.log(err))
       );
@@ -147,7 +156,10 @@ const MyHero = ({ address, contracts }) => {
     for (let index = 0; index < youxias; index++) {
       promises.push(
         contracts.youxiaContract.methods
-          .tokenOfOwnerByIndex(address, index)
+          .tokenOfOwnerByIndex(
+            address,
+            index
+          )
           .call()
           .catch((err) => console.log(err))
       );
@@ -198,119 +210,112 @@ const MyHero = ({ address, contracts }) => {
             (pre, item) => (item.level > 3 ? pre + item.level : pre + 3),
             0
           );
-          fetch(
-            `https://game.binaryx.pro/v1/dungeon/enternumber?GoldAddress=${address}&TokenIds=${JSON.stringify(
-              tokenids
-            )}`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          )
-            .then((res) => res.json())
-            .then((res) => {
-              // console.log(res);
-              let mss = 0;
-              nlist.forEach((item) => {
-                for (let ab = 0; ab < res.data.length; ab++) {
-                  const child = res.data[ab];
-                  if (item.token_id === child.id) {
-                    nlist[ab]["num"] = child.num;
-                    nlist[ab]["lv"] = 1;
-                    nlist[ab]["l"] = 1;
-                    mss += child.num;
-                    break;
+          const ns = Math.ceil(tokenids.length / 10);
+          const idsmises = [];
+          for (let end = 0; end < ns; end++) {
+            const sliceIds = tokenids.slice(0 + end * 10, end * 10 + 10);
+            idsmises.push(
+              new Promise((resolve) => {
+                fetch(
+                  `https://game.binaryx.pro/v1/dungeon/enternumber?GoldAddress=${address}&TokenIds=${JSON.stringify(
+                    sliceIds
+                  )}`,
+                  {
+                    method: "POST",
+                    credentials: "include",
+                    body: JSON.stringify({
+                      GoldAddress: address,
+                      TokenIds: JSON.stringify(sliceIds),
+                    }),
                   }
-                }
-              });
-              setMsNums(ms);
-              setMssNums(mss);
-              setMyHeroList(nlist.sort((a, b) => b.num - a.num));
-
-              const blocks = nlist.filter((record) => {
-                let hege = false;
-                switch (record.career_address) {
-                  case Robber:
-                    hege = filterHegeOne(record, Robber, "agility", "strength");
-                    break;
-                  case Ranger:
-                    hege = filterHegeOne(record, Ranger, "strength", "agility");
-                    break;
-                  case Warrior:
-                    hege = filterHegeOne(
-                      record,
-                      Warrior,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Katrina:
-                    hege = filterHegeOne(
-                      record,
-                      Katrina,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Mage:
-                    hege = filterHegeOne(record, Mage, "brains", "charm");
-                    break;
-                }
-                return hege === false;
-              });
-              const heges = nlist.filter((record) => {
-                let hege = false;
-                switch (record.career_address) {
-                  case Robber:
-                    hege = filterHegeOne(record, Robber, "agility", "strength");
-                    break;
-                  case Ranger:
-                    hege = filterHegeOne(record, Ranger, "strength", "agility");
-                    break;
-                  case Warrior:
-                    hege = filterHegeOne(
-                      record,
-                      Warrior,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Katrina:
-                    hege = filterHegeOne(
-                      record,
-                      Katrina,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-
-                  case Mage:
-                    hege = filterHegeOne(record, Mage, "brains", "charm");
-                    break;
-                }
-                return hege === true;
-              });
-              const hightLevel = heges.reduce((hight, record) => {
-                return record.level > hight ? record.level : hight;
-              }, 1);
-              const levels = [];
-              for (let i = 0; i < hightLevel; i++) {
-                levels.push(
-                  heges.filter((record) => record.level === i + 1).length
-                );
+                )
+                  .then((res) => res.json())
+                  .then((res) => resolve(res.data));
+              })
+            );
+          }
+          const allids = await Promise.all(idsmises).catch((e) =>
+            setHeroLoad(false)
+          );
+          const allis = allids.reduce((pre, s) => [...pre, ...s], []);
+          let mss = 0;
+          nlist.forEach((item) => {
+            for (let ab = 0; ab < allis.length; ab++) {
+              const child = allis[ab];
+              if (item.token_id === child.id) {
+                nlist[ab]["num"] = child.num;
+                nlist[ab]["lv"] = 1;
+                nlist[ab]["l"] = 1;
+                mss += child.num;
+                break;
               }
-              setHeroLoad(false)
-              setCardNum({
-                b: blocks.length,
-                h: heges.length,
-                levels,
-                hightLevel,
-              });
-            })
-            .catch((err) => setHeroLoad(false));
+            }
+          });
+          setMsNums(ms);
+          setMssNums(mss);
+          setMyHeroList(nlist.sort((a, b) => b.num - a.num));
+
+          const blocks = nlist.filter((record) => {
+            let hege = false;
+            switch (record.career_address) {
+              case Robber:
+                hege = filterHegeOne(record, Robber, "agility", "strength");
+                break;
+              case Ranger:
+                hege = filterHegeOne(record, Ranger, "strength", "agility");
+                break;
+              case Warrior:
+                hege = filterHegeOne(record, Warrior, "strength", "physique");
+                break;
+              case Katrina:
+                hege = filterHegeOne(record, Katrina, "strength", "physique");
+                break;
+              case Mage:
+                hege = filterHegeOne(record, Mage, "brains", "charm");
+                break;
+            }
+            return hege === false;
+          });
+          const heges = nlist.filter((record) => {
+            let hege = false;
+            switch (record.career_address) {
+              case Robber:
+                hege = filterHegeOne(record, Robber, "agility", "strength");
+                break;
+              case Ranger:
+                hege = filterHegeOne(record, Ranger, "strength", "agility");
+                break;
+              case Warrior:
+                hege = filterHegeOne(record, Warrior, "strength", "physique");
+                break;
+              case Katrina:
+                hege = filterHegeOne(record, Katrina, "strength", "physique");
+                break;
+
+              case Mage:
+                hege = filterHegeOne(record, Mage, "brains", "charm");
+                break;
+            }
+            return hege === true;
+          });
+          const hightLevel = heges.reduce((hight, record) => {
+            return record.level > hight ? record.level : hight;
+          }, 1);
+          const levels = [];
+          for (let i = 0; i < hightLevel; i++) {
+            levels.push(
+              heges.filter((record) => record.level === i + 1).length
+            );
+          }
+          setHeroLoad(false);
+          setCardNum({
+            b: blocks.length,
+            h: heges.length,
+            levels,
+            hightLevel,
+          });
         })
-        .catch((err) => setHeroLoad(false))
-      
+        .catch((err) => setHeroLoad(false));
     });
   };
   const toJianZhi = () => {
@@ -332,7 +337,7 @@ const MyHero = ({ address, contracts }) => {
           .then(() => Hero())
           .catch((err) => console.log(err));
       });
-    })
+    });
   };
 
   const toTransfer = () => {
@@ -350,34 +355,34 @@ const MyHero = ({ address, contracts }) => {
     }
     ff(0.002 * Math.ceil(myCardSelectedList.length / 10), address, () => {
       Notification.info({ content: "正在转移卡中, 请稍后", duration: 10 });
-          myCardSelectedList.forEach((item, index) => {
-            let typeContract;
-            switch (item.career_address) {
-              case Warrior:
-                typeContract = contracts.WarriorContract;
-                break;
-              case Katrina:
-                typeContract = contracts.KatrinaContract;
-                break;
-              case Robber:
-                typeContract = contracts.RobberContract;
-                break;
-              case Mage:
-                typeContract = contracts.MageContract;
-                break;
-              case Ranger:
-                typeContract = contracts.youxiaContract;
-                break;
-            }
-            typeContract.methods
-              .transferFrom(address, transferAddress, item.token_id)
-              .send({
-                from: address,
-              })
-              .then(() => Hero())
-              .catch((err) => console.log(err));
-          });
-    })
+      myCardSelectedList.forEach((item, index) => {
+        let typeContract;
+        switch (item.career_address) {
+          case Warrior:
+            typeContract = contracts.WarriorContract;
+            break;
+          case Katrina:
+            typeContract = contracts.KatrinaContract;
+            break;
+          case Robber:
+            typeContract = contracts.RobberContract;
+            break;
+          case Mage:
+            typeContract = contracts.MageContract;
+            break;
+          case Ranger:
+            typeContract = contracts.youxiaContract;
+            break;
+        }
+        typeContract.methods
+          .transferFrom(address, transferAddress, item.token_id)
+          .send({
+            from: address,
+          })
+          .then(() => Hero())
+          .catch((err) => console.log(err));
+      });
+    });
   };
 
   const toSecond = () => {
@@ -493,7 +498,7 @@ const MyHero = ({ address, contracts }) => {
           margin: 5,
         }}
       >
-        <a href="https://game.binaryx.pro" target="_blank">
+        <a href="https://game.binaryx.pro/#/game?type=1" target="_blank">
           BinaryX官网
         </a>
       </div>
@@ -607,7 +612,8 @@ const MyHero = ({ address, contracts }) => {
         </Space>
       </div>
       <p style={{ width: "100%", textAlign: "center" }}>
-        每次点击相关操作按钮前, 都需要支付每10卡0.002BNB手续费, 单次升级除外
+        每次点击相关操作按钮前, 都需要支付每10卡0.002BNB手续费,
+        单次发布,升级除外
       </p>
       {myCardSelectedList.length > 0 ? (
         <div

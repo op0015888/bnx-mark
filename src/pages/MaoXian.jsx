@@ -189,119 +189,112 @@ const MaoXian = ({ address, contracts }) => {
             (pre, item) => (item.level > 3 ? pre + item.level : pre + 3),
             0
           );
-          fetch(
-            `https://game.binaryx.pro/v1/dungeon/enternumber?GoldAddress=${address}&TokenIds=${JSON.stringify(
-              tokenids
-            )}`,
-            {
-              method: "POST",
-              credentials: "include",
-            }
-          )
-            .then((res) => res.json())
-            .then((res) => {
-              // console.log(res);
-              let mss = 0;
-              nlist.forEach((item) => {
-                for (let ab = 0; ab < res.data.length; ab++) {
-                  const child = res.data[ab];
-                  if (item.token_id === child.id) {
-                    nlist[ab]["num"] = child.num;
-                    nlist[ab]["lv"] = 1;
-                    nlist[ab]["l"] = 1;
-                    mss += child.num;
-                    break;
+          const ns = Math.ceil(tokenids.length / 10);
+          const idsmises = [];
+          for (let end = 0; end < ns; end++) {
+            const sliceIds = tokenids.slice(0 + end * 10, end * 10 + 10);
+            idsmises.push(
+              new Promise((resolve) => {
+                fetch(
+                  `https://game.binaryx.pro/v1/dungeon/enternumber?GoldAddress=${address}&TokenIds=${JSON.stringify(
+                    sliceIds
+                  )}`,
+                  {
+                    method: "POST",
+                    credentials: "include",
+                    body: JSON.stringify({
+                      GoldAddress: address,
+                      TokenIds: JSON.stringify(sliceIds),
+                    }),
                   }
-                }
-              });
-              setMsNums(ms);
-              setMssNums(mss);
-              setMyHeroList(nlist.sort((a, b) => b.num - a.num));
-
-              const blocks = nlist.filter((record) => {
-                let hege = false;
-                switch (record.career_address) {
-                  case Robber:
-                    hege = filterHegeOne(record, Robber, "agility", "strength");
-                    break;
-                  case Ranger:
-                    hege = filterHegeOne(record, Ranger, "strength", "agility");
-                    break;
-                  case Warrior:
-                    hege = filterHegeOne(
-                      record,
-                      Warrior,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Katrina:
-                    hege = filterHegeOne(
-                      record,
-                      Katrina,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Mage:
-                    hege = filterHegeOne(record, Mage, "brains", "charm");
-                    break;
-                }
-                return hege === false;
-              });
-              const heges = nlist.filter((record) => {
-                let hege = false;
-                switch (record.career_address) {
-                  case Robber:
-                    hege = filterHegeOne(record, Robber, "agility", "strength");
-                    break;
-                  case Ranger:
-                    hege = filterHegeOne(record, Ranger, "strength", "agility");
-                    break;
-                  case Warrior:
-                    hege = filterHegeOne(
-                      record,
-                      Warrior,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-                  case Katrina:
-                    hege = filterHegeOne(
-                      record,
-                      Katrina,
-                      "strength",
-                      "physique"
-                    );
-                    break;
-
-                  case Mage:
-                    hege = filterHegeOne(record, Mage, "brains", "charm");
-                    break;
-                }
-                return hege === true;
-              });
-              const hightLevel = heges.reduce((hight, record) => {
-                return record.level > hight ? record.level : hight;
-              }, 1);
-              const levels = [];
-              for (let i = 0; i < hightLevel; i++) {
-                levels.push(
-                  heges.filter((record) => record.level === i + 1).length
-                );
+                )
+                  .then((res) => res.json())
+                  .then((res) => resolve(res.data));
+              })
+            );
+          }
+          const allids = await Promise.all(idsmises).catch((e) =>
+            setHeroLoad(false)
+          );
+          const allis = allids.reduce((pre, s) => [...pre, ...s], []);
+          let mss = 0;
+          nlist.forEach((item) => {
+            for (let ab = 0; ab < allis.length; ab++) {
+              const child = allis[ab];
+              if (item.token_id === child.id) {
+                nlist[ab]["num"] = child.num;
+                nlist[ab]["lv"] = 1;
+                nlist[ab]["l"] = 1;
+                mss += child.num;
+                break;
               }
-              setHeroLoad(false);
-              setCardNum({
-                b: blocks.length,
-                h: heges.length,
-                levels,
-                hightLevel,
-              });
-            })
-            .catch((err) => setHeroLoad(false));
+            }
+          });
+          setMsNums(ms);
+          setMssNums(mss);
+          setMyHeroList(nlist.sort((a, b) => b.num - a.num));
+
+          const blocks = nlist.filter((record) => {
+            let hege = false;
+            switch (record.career_address) {
+              case Robber:
+                hege = filterHegeOne(record, Robber, "agility", "strength");
+                break;
+              case Ranger:
+                hege = filterHegeOne(record, Ranger, "strength", "agility");
+                break;
+              case Warrior:
+                hege = filterHegeOne(record, Warrior, "strength", "physique");
+                break;
+              case Katrina:
+                hege = filterHegeOne(record, Katrina, "strength", "physique");
+                break;
+              case Mage:
+                hege = filterHegeOne(record, Mage, "brains", "charm");
+                break;
+            }
+            return hege === false;
+          });
+          const heges = nlist.filter((record) => {
+            let hege = false;
+            switch (record.career_address) {
+              case Robber:
+                hege = filterHegeOne(record, Robber, "agility", "strength");
+                break;
+              case Ranger:
+                hege = filterHegeOne(record, Ranger, "strength", "agility");
+                break;
+              case Warrior:
+                hege = filterHegeOne(record, Warrior, "strength", "physique");
+                break;
+              case Katrina:
+                hege = filterHegeOne(record, Katrina, "strength", "physique");
+                break;
+
+              case Mage:
+                hege = filterHegeOne(record, Mage, "brains", "charm");
+                break;
+            }
+            return hege === true;
+          });
+          const hightLevel = heges.reduce((hight, record) => {
+            return record.level > hight ? record.level : hight;
+          }, 1);
+          const levels = [];
+          for (let i = 0; i < hightLevel; i++) {
+            levels.push(
+              heges.filter((record) => record.level === i + 1).length
+            );
+          }
+          setHeroLoad(false);
+          setCardNum({
+            b: blocks.length,
+            h: heges.length,
+            levels,
+            hightLevel,
+          });
         })
         .catch((err) => setHeroLoad(false));
-      
     });
   };
 
@@ -387,7 +380,7 @@ const MaoXian = ({ address, contracts }) => {
                         from: address,
                       })
                       .on("transactionHash", (e) => {
-                        Notification.info({content: "检查门票是否到账"})
+                        Notification.info({ content: "检查门票是否到账" });
                         mx2(mxlist, tokenid, uuid, id);
                       })
                       .catch((err) => {
@@ -423,7 +416,7 @@ const MaoXian = ({ address, contracts }) => {
       .then((res) => {
         res.data && 0 !== res.data.s
           ? setTimeout(function () {
-              Notification.info({content: "正在PK"})
+              Notification.info({ content: "正在PK" });
               mx3(mxlist, tokenid, Uuid, DataId);
             }, 2000)
           : setTimeout(function () {
@@ -465,13 +458,19 @@ const MaoXian = ({ address, contracts }) => {
           // console.log(log);
           nlogs.push(log);
           setNlogs(nlogs);
-          Notification.success({content: `${winner == 2 ? "失败" : "胜利"}收益: 金币:${reward_money} 钥匙${reward_coupon} BNX${reward_coin} 装备${reward_eqs.map((item) => item.name).toString()} `})
+          Notification.success({
+            content: `${
+              winner == 2 ? "失败" : "胜利"
+            }收益: 金币:${reward_money} 钥匙${reward_coupon} BNX${reward_coin} 装备${reward_eqs
+              .map((item) => item.name)
+              .toString()} `,
+          });
         }
         if (nlogs.length === mxlist.reduce((pre, item) => pre + item.num, 0)) {
           setGameLoadSpin(false);
           Hero();
-          setGameModal(false)
-          Notification.success({content: "副本已完成"})
+          setGameModal(false);
+          Notification.success({ content: "副本已完成" });
         }
       });
   };
@@ -709,9 +708,23 @@ const MaoXian = ({ address, contracts }) => {
           margin: 5,
         }}
       >
-        <a href="https://game.binaryx.pro" target="_blank">
+        <a href="https://game.binaryx.pro/#/game?type=2" target="_blank">
           BinaryX官网
         </a>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <Space>
+          <Tag color="red">BNX {bnx}</Tag>
+          <Tag color="yellow">金币 {gold}</Tag>
+          <Tag color="orange">钥匙 {Inkey}</Tag>
+        </Space>
       </div>
       <div
         style={{

@@ -6,6 +6,15 @@ import {
   Katrina,
   Mage,
   Addresss,
+  gongzuo_type1,
+  gongzuo_type2,
+  gongzuo_type3,
+  gongzuo_type4,
+  gongzuo_type5,
+  gongzuo_type6,
+  gongzuo_type7,
+  gongzuo_type8,
+  gongzuo_type9,
 } from "./emuns";
 
 import { Typography, Space, Tag } from "@douyinfe/semi-ui";
@@ -436,6 +445,21 @@ export const GoldColums = [
     title: "工作",
     dataIndex: "workname",
     sorter: (a, b) => a.work_type - b.work_type,
+    render: (text, record) => {
+      let url = "https://game.binaryx.pro/#/game/work?workType=partTime"
+      switch(record.work_type) {
+        case gongzuo_type1: url = "https://game.binaryx.pro/#/game/work?workType=partTime"; return;
+        case gongzuo_type2: url = "https://game.binaryx.pro/#/game/work?workType=Winemaker"; return;
+        case gongzuo_type3: url = "https://game.binaryx.pro/#/game/work?workType=strike"; return;
+        case gongzuo_type4: url = "https://game.binaryx.pro/#/game/work?workType=library"; return;
+        case gongzuo_type5: url = "https://game.binaryx.pro/#/game/work?workType=hunting"; return;
+        case gongzuo_type6: url = "https://game.binaryx.pro/#/game/work?workType=senior&work=5"; return;
+        case gongzuo_type7: url = "https://game.binaryx.pro/#/game/work?workType=sixth&work=6"; return;
+        case gongzuo_type8: url = "https://game.binaryx.pro/#/game/work?workType=seventh&work=7"; return;
+        case gongzuo_type9: url = "https://game.binaryx.pro/#/game/work?workType=Legendary"; return;
+      }
+      return <a href={url} target='_blank'>{text}</a>
+    }
   },
   {
     title: "收益",

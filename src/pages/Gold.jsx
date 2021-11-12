@@ -23,6 +23,7 @@ import {
   gongzuo_type6,
   gongzuo_type7,
   gongzuo_type8,
+  gongzuo_type9,
   Robber,
   Warrior,
   Ranger,
@@ -51,7 +52,7 @@ const Gold = ({ address, contracts }) => {
   const [work, setWord] = useState(false); // 收菜, 退出工作
   const [filterGold, setFilterGold] = useState(1000);
   const [selectedRowKeys, setselectedRowKeys] = useState([]);
-  const [copyAddress, setCopyAddress] = useState(address)
+  const [copyAddress, setCopyAddress] = useState(address);
 
   useEffect(() => {
     setMyWorkCardSelectedList([]);
@@ -75,6 +76,7 @@ const Gold = ({ address, contracts }) => {
       gongzuo_type6,
       gongzuo_type7,
       gongzuo_type8,
+      gongzuo_type9,
     ];
     setWorkLoad(true);
     setGongZuoList([]);
@@ -84,7 +86,9 @@ const Gold = ({ address, contracts }) => {
     setMyWorkCardSelectedList([]);
     const allFetchPromises = types.map((item) => {
       return fetch(
-        `https://game.binaryx.pro/info/getWorks2?address=${copyAddress || address}&work_type=${item}&page=1&page_size=3000&direction=asc`
+        `https://game.binaryx.pro/info/getWorks2?address=${
+          copyAddress || address
+        }&work_type=${item}&page=1&page_size=3000&direction=asc`
       )
         .then((res) => {
           return res.json();
@@ -105,7 +109,8 @@ const Gold = ({ address, contracts }) => {
         })
         .catch((e) => console.log(e));
     });
-    Promise.all(allFetchPromises).then((res) => {
+    Promise.all(allFetchPromises)
+      .then((res) => {
         let list = res
           .filter((item) => item != undefined)
           .reduce((pre, item) => {
@@ -140,6 +145,18 @@ const Gold = ({ address, contracts }) => {
               break;
             case "打猎":
               typeContract = contracts.RangeworkContract;
+              break;
+            case "传奇":
+              typeContract = contracts.LegendaryContract;
+              break;
+            case "守卫":
+              typeContract = contracts.GaojiAddressContract;
+              break;
+            case "士兵":
+              typeContract = contracts.SixthContract;
+              break;
+            case "顾问":
+              typeContract = contracts.SeventhContract;
               break;
             default:
               typeContract = contracts.LgongContract;
@@ -278,29 +295,34 @@ const Gold = ({ address, contracts }) => {
           });
         });
       } else {
-        ff(0.002 * Math.ceil((all ? gongzuoList : myWorkCardSelectedList).length / 10), address, () => {
-          Notification.info({
-            content: "正在获取收益中, 请稍后",
-            duration: 10,
-          });
-          (all ? gongzuoList : myWorkCardSelectedList).forEach(
-            (item, index) => {
-              if (item.workname === "兼职") {
-                contracts.MiningContract.methods
-                  .getAward(item.token_id)
-                  .send({ from: address })
-                  .then(() => getWordCards())
-                  .catch((err) => console.log(err));
-              } else {
-                contracts.NewMiningContract.methods
-                  .getAward(item.token_id)
-                  .send({ from: address })
-                  .then(() => getWordCards())
-                  .catch((err) => console.log(err));
+        ff(
+          0.002 *
+            Math.ceil((all ? gongzuoList : myWorkCardSelectedList).length / 10),
+          address,
+          () => {
+            Notification.info({
+              content: "正在获取收益中, 请稍后",
+              duration: 10,
+            });
+            (all ? gongzuoList : myWorkCardSelectedList).forEach(
+              (item, index) => {
+                if (item.workname === "兼职") {
+                  contracts.MiningContract.methods
+                    .getAward(item.token_id)
+                    .send({ from: address })
+                    .then(() => getWordCards())
+                    .catch((err) => console.log(err));
+                } else {
+                  contracts.NewMiningContract.methods
+                    .getAward(item.token_id)
+                    .send({ from: address })
+                    .then(() => getWordCards())
+                    .catch((err) => console.log(err));
+                }
               }
-            }
-          );
-        });
+            );
+          }
+        );
       }
     };
   };
@@ -423,7 +445,7 @@ const Gold = ({ address, contracts }) => {
           margin: 5,
         }}
       >
-        <a href="https://game.binaryx.pro" target="_blank">
+        <a href="https://game.binaryx.pro/#/game?type=3" target="_blank">
           BinaryX官网
         </a>
       </div>
@@ -550,22 +572,26 @@ const Gold = ({ address, contracts }) => {
           justifyContent: "center",
           margin: 20,
           flexWrap: "wrap",
-          alignItems: 'center'
+          alignItems: "center",
         }}
       >
         <Input
           placeholder="输入其他地址查询收益(仅限于查询)"
           style={{ width: 300 }}
           value={copyAddress}
-          onChange={e => {
-            setCopyAddress(e)
-            if(e == '') setCopyAddress(address)
+          onChange={(e) => {
+            setCopyAddress(e);
+            if (e == "") setCopyAddress(address);
           }}
         />
-        <Button type="primary" style={{ margin: 3 }} onClick={() => {
-          setCopyAddress(address)
-          getWordCards()
-        }}>
+        <Button
+          type="primary"
+          style={{ margin: 3 }}
+          onClick={() => {
+            setCopyAddress(address);
+            getWordCards();
+          }}
+        >
           重置
         </Button>
       </div>
